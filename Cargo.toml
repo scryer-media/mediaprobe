@@ -1,0 +1,27 @@
+[package]
+name = "mediaprobe"
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.97.1"
+authors = ["NZB Man"]
+license = "Apache-2.0"
+keywords = ["media", "video", "metadata", "container", "codec"]
+categories = ["multimedia", "multimedia::video", "parser-implementations"]
+homepage = "https://github.com/scryer-media/mediaprobe"
+repository = "https://github.com/scryer-media/mediaprobe"
+description = "Container and stream metadata for media files, read in pure Rust with no external tools. This release reserves the name; the parser is not published yet."
+readme = "README.md"
+# Repository scaffolding that has no business in the crate archive.
+exclude = [
+    ".agents/", ".githooks/", ".github/", ".gitleaks.toml", ".gitattributes", "renovate.json",
+    "AGENTS.md", "tests/", "rust-toolchain.toml",
+]
+
+[dependencies]
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+missing_docs = "warn"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--cfg", "docsrs"]
