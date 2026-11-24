@@ -25,9 +25,6 @@ const MASTER_X265: &str = "G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,1645
 const MASTER_X264: &str = "G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,50)";
 const MASTER_SVT: &str = "G(0.265,0.690)B(0.150,0.060)R(0.680,0.320)WP(0.3127,0.3290)L(1000,0.005)";
 
-/// Small HDR10+ dynamic metadata for x265's `dhdr10-info` (one scene).
-pub(crate) const HDR10PLUS_JSON: &str = r#"{"JSONInfo":{"HDR10plusProfile":"B","Version":"1.0"},"SceneInfo":[{"BezierCurveData":{"Anchors":[256,512,768,1024,1280,1536,1792,2048,2304],"KneePointX":0,"KneePointY":0},"LuminanceParameters":{"AverageRGB":1000,"LuminanceDistributions":{"DistributionIndex":[1,5,10,25,50,75,90,95,99],"DistributionValues":[0,1,2,3,4,5,6,7,8]},"MaxScl":[1000,1000,1000]},"NumberOfWindows":1,"TargetedSystemDisplayMaximumLuminance":400,"SceneFrameNumbers":0,"SceneId":0,"SequenceFrameNumber":0}],"SceneInfoSummary":{"SceneFirstFrameIndex":[0],"SceneFrameNumbers":[24]},"ToolInfo":{"Tool":"mediaprobe-fixture","Version":"1"}}"#;
-
 const SIZE: &str = "64x64";
 const W: i32 = 64;
 const H: i32 = 64;
@@ -204,13 +201,15 @@ impl Transfer {
 }
 
 /// libx265 options. `static_hdr` adds mastering display and content light
-/// SEI; `dynamic` adds HDR10+ from `{work}/hdr10plus.json`; `container_trc`
-/// overrides the transfer FFmpeg writes into the container (for conflicts).
+/// SEI; `container_trc` overrides the transfer FFmpeg writes into the
+/// container (for conflicts). HDR10+ is never asked of the encoder: whether
+/// libx265 honours `dhdr10-info` depends on how it was built, and a build
+/// without it drops the metadata silently, so [`hevc_hdr10plus`] writes the
+/// SEI itself.
 fn x265(
     pix_fmt: &str,
     transfer: Transfer,
     static_hdr: bool,
-    dynamic: bool,
     container_trc: Option<&str>,
 ) -> Vec<String> {
     let (prim, matrix) = if transfer == Transfer::Sdr {
@@ -226,9 +225,6 @@ fn x265(
         params.push_str(&format!(
             ":hdr10=1:master-display={MASTER_X265}:max-cll=1000,400"
         ));
-    }
-    if dynamic {
-        params.push_str(":dhdr10-info={work}/hdr10plus.json");
     }
     let mut a = s(&[
         "-c:v",
@@ -268,11 +264,36 @@ fn container_colour(primaries: &str, matrix: &str, transfer: &str) -> Vec<String
 }
 
 fn x265_hdr10() -> Vec<String> {
-    x265("yuv420p10le", Transfer::Pq, true, false, None)
+    x265("yuv420p10le", Transfer::Pq, true, None)
 }
 
 /// x265 arguments without B-frames, for streams that are written raw and
 /// timestamped on remux: decode order is presentation order.
+/// HEVC with HDR10 static metadata from the encoder and an HDR10+ SEI
+/// written by the injector, muxed with `flags`.
+fn hevc_hdr10plus(flags: &[&str], muxer: &str) -> Vec<Step> {
+    vec![
+        ffmpeg(vec![
+            picture(),
+            no_bframes(x265("yuv420p10le", Transfer::Pq, true, None)),
+            to("hevc", "{work}/v.hevc"),
+        ]),
+        inject(
+            "{work}/v.hevc",
+            "{work}/i.hevc",
+            Inject::AnnexB {
+                codec: NalCodec::Hevc,
+                inserts: vec![NalInsert::Hdr10Plus],
+            },
+        ),
+        ffmpeg(vec![
+            raw_copy("hevc", 24, "{work}/i.hevc"),
+            s(flags),
+            out(muxer),
+        ]),
+    ]
+}
+
 fn no_bframes(mut args: Vec<String>) -> Vec<String> {
     let at = args
         .iter()
@@ -532,8 +553,6 @@ const VP9_MUXERS: &[(&str, &[&str])] = &[("webm", &[]), ("matroska", &[]), ("mp4
 const H264_MUXERS: &[(&str, &[&str])] = &[("matroska", &[]), ("mp4", &[]), ("mpegts", &[])];
 
 fn hdr_fixtures(v: &mut Vec<F>) {
-    let hdr10plus_json = || write("hdr10plus.json", HDR10PLUS_JSON);
-
     for (muxer, flags) in HEVC_MUXERS {
         let base = || Expect::video(container(muxer), "hevc", W, H, 24);
         let x = ext(muxer);
@@ -547,7 +566,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
             format!("hdr/hevc_pq_no_static.{x}"),
             vec![ffmpeg(vec![
                 picture(),
-                x265("yuv420p10le", Transfer::Pq, false, false, None),
+                x265("yuv420p10le", Transfer::Pq, false, None),
                 s(flags),
                 out(muxer),
             ])],
@@ -558,7 +577,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
             format!("hdr/hevc_hlg.{x}"),
             vec![ffmpeg(vec![
                 picture(),
-                x265("yuv420p10le", Transfer::Hlg, false, false, None),
+                x265("yuv420p10le", Transfer::Hlg, false, None),
                 s(flags),
                 out(muxer),
             ])],
@@ -567,15 +586,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
         ));
         v.push(F::new(
             format!("hdr/hevc_hdr10plus.{x}"),
-            vec![
-                hdr10plus_json(),
-                ffmpeg(vec![
-                    picture(),
-                    x265("yuv420p10le", Transfer::Pq, true, true, None),
-                    s(flags),
-                    out(muxer),
-                ]),
-            ],
+            hevc_hdr10plus(flags, muxer),
             hdr10plus(base()).check("video.metadata.hdr.hdr10", true),
             &["libx265"],
         ));
@@ -589,7 +600,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
         ),
         (
             "hevc_hlg",
-            x265("yuv420p10le", Transfer::Hlg, false, false, None),
+            x265("yuv420p10le", Transfer::Hlg, false, None),
             hlg(Expect::video("mpegts", "hevc", W, H, 24)),
         ),
     ] {
@@ -607,15 +618,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
     }
     v.push(F::new(
         "hdr/hevc_hdr10plus.m2ts",
-        vec![
-            hdr10plus_json(),
-            ffmpeg(vec![
-                picture(),
-                x265("yuv420p10le", Transfer::Pq, true, true, None),
-                s(&["-mpegts_m2ts_mode", "1"]),
-                out("mpegts"),
-            ]),
-        ],
+        hevc_hdr10plus(&["-mpegts_m2ts_mode", "1"], "mpegts"),
         hdr10plus(Expect::video("mpegts", "hevc", W, H, 24)),
         &["libx265"],
     ));
@@ -644,7 +647,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
                 vec![
                     ffmpeg(vec![
                         picture(),
-                        no_bframes(x265("yuv420p10le", Transfer::Pq, static_hdr, false, None)),
+                        no_bframes(x265("yuv420p10le", Transfer::Pq, static_hdr, None)),
                         to("hevc", "{work}/v.hevc"),
                     ]),
                     inject(
@@ -818,7 +821,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
             format!("hdr/hevc_pq_container_bt709.{}", ext(muxer)),
             vec![ffmpeg(vec![
                 picture(),
-                x265("yuv420p10le", Transfer::Pq, true, false, Some("bt709")),
+                x265("yuv420p10le", Transfer::Pq, true, Some("bt709")),
                 s(flags),
                 out(muxer),
             ])],
@@ -872,13 +875,7 @@ fn hdr_fixtures(v: &mut Vec<F>) {
         "hdr/hevc_sdr_container_pq.mkv",
         vec![ffmpeg(vec![
             picture(),
-            x265(
-                "yuv420p10le",
-                Transfer::Sdr,
-                false,
-                false,
-                Some("smpte2084"),
-            ),
+            x265("yuv420p10le", Transfer::Sdr, false, Some("smpte2084")),
             out("matroska"),
         ])],
         colour(Expect::video("matroska", "hevc", W, H, 24), Transfer::Sdr)
@@ -931,7 +928,7 @@ fn base_layer(kind: &str) -> (Vec<String>, &'static str, &'static str, i32) {
         "hevc_sdr" => (
             [
                 picture(),
-                x265("yuv420p10le", Transfer::Sdr, false, false, None),
+                x265("yuv420p10le", Transfer::Sdr, false, None),
                 s(&["-tag:v", "hvc1"]),
             ]
             .concat(),
@@ -942,7 +939,7 @@ fn base_layer(kind: &str) -> (Vec<String>, &'static str, &'static str, i32) {
         "hevc_hlg" => (
             [
                 picture(),
-                x265("yuv420p10le", Transfer::Hlg, false, false, None),
+                x265("yuv420p10le", Transfer::Hlg, false, None),
                 s(&["-tag:v", "hvc1"]),
             ]
             .concat(),
@@ -1290,10 +1287,9 @@ fn dovi_fixtures(v: &mut Vec<F>) {
     // Everything at once: Dolby Vision 8.1 + HDR10+ + HDR10 fallback.
     {
         let mut steps = vec![
-            write("hdr10plus.json", HDR10PLUS_JSON),
             ffmpeg(vec![
                 picture(),
-                no_bframes(x265("yuv420p10le", Transfer::Pq, true, true, None)),
+                no_bframes(x265("yuv420p10le", Transfer::Pq, true, None)),
                 to("hevc", "{work}/v.hevc"),
             ]),
             inject(
@@ -1301,7 +1297,7 @@ fn dovi_fixtures(v: &mut Vec<F>) {
                 "{work}/i.hevc",
                 Inject::AnnexB {
                     codec: NalCodec::Hevc,
-                    inserts: vec![NalInsert::DoviRpu],
+                    inserts: vec![NalInsert::Hdr10Plus, NalInsert::DoviRpu],
                 },
             ),
         ];
@@ -1697,6 +1693,10 @@ fn codec_fixtures(v: &mut Vec<F>) {
                 "ultrafast",
                 "-x265-params",
                 "log-level=error",
+                // Without an explicit tag FFmpeg writes a zero FourCC, which
+                // reads back as uncompressed video.
+                "-tag:v",
+                "HEVC",
             ][..],
             "hevc",
             "libx265",
@@ -2203,12 +2203,12 @@ fn elementary_fixtures(v: &mut Vec<F>) {
     for (name, args, hdr) in [
         (
             "elementary/hevc.h265",
-            x265("yuv420p", Transfer::Sdr, false, false, None),
+            x265("yuv420p", Transfer::Sdr, false, None),
             false,
         ),
         (
             "elementary/hevc_hdr10.hevc",
-            x265("yuv420p10le", Transfer::Pq, true, false, None),
+            x265("yuv420p10le", Transfer::Pq, true, None),
             true,
         ),
     ] {
@@ -2881,9 +2881,15 @@ fn language_fixtures(v: &mut Vec<F>) {
         if let Some(l) = expected {
             e = e.check("audio.0.language", l);
         }
+        let mut steps = vec![ffmpeg(a)];
+        // The MP4 language field holds an ISO 639-2 code only; a BCP 47 tag
+        // travels in the extended language box, which FFmpeg does not write.
+        if let Some(tag) = tag.filter(|t| muxer == "mp4" && t.contains('-')) {
+            steps.push(Step::Post(Post::Mp4ExtendedLanguage { tag: tag.into() }));
+        }
         v.push(F::new(
             format!("lang/{stem}.{}", ext(muxer)),
-            vec![ffmpeg(a)],
+            steps,
             e,
             &[venc, aenc],
         ));
@@ -3036,31 +3042,35 @@ fn chapter_fixtures(v: &mut Vec<F>) {
             &[venc],
         ));
     }
-    // Ogg chapters are Vorbis comments (CHAPTERnn); audio-only, as above.
+    // Ogg chapters are Vorbis comments (CHAPTERnnn and CHAPTERnnnNAME);
+    // audio-only, as above. They are written as comments directly: FFmpeg's
+    // Ogg muxer drops chapters mapped from a metadata file.
     let mut e = Expect::audio_only("ogg")
         .audio("vorbis", 2, None)
         .check("summary.num_chapters", 3i64);
     e.chapter_titles = vec!["Opening", "幕間", "Fin"];
+    let mut comments = Vec::new();
+    for (index, (start, title)) in [
+        ("00:00:00.000", "Opening"),
+        ("00:00:00.300", "幕間"),
+        ("00:00:00.700", "Fin"),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        for (suffix, value) in [("", start), ("NAME", title)] {
+            comments.push("-metadata:s:a:0".to_owned());
+            comments.push(format!("CHAPTER{index:03}{suffix}={value}"));
+        }
+    }
     v.push(F::new(
         "chapters/three.ogg",
-        vec![
-            write("chapters.txt", CHAPTERS),
-            ffmpeg(vec![
-                silence("stereo", 48000),
-                s(&[
-                    "-i",
-                    "{work}/chapters.txt",
-                    "-map",
-                    "0:a",
-                    "-map_metadata",
-                    "1",
-                    "-map_chapters",
-                    "1",
-                ]),
-                audio("vorbis"),
-                out("ogg"),
-            ]),
-        ],
+        vec![ffmpeg(vec![
+            silence("stereo", 48000),
+            audio("vorbis"),
+            comments,
+            out("ogg"),
+        ])],
         e,
         &["vorbis"],
     ));

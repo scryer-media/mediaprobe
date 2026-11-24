@@ -1,1 +1,3 @@
-*.txt text eol=lf
+# Tests compare source and rendered files byte for byte, so every checkout
+# uses line feeds.
+* text=auto eol=lf

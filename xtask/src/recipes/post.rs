@@ -26,6 +26,10 @@ pub(crate) enum Post {
     /// Insert a `free` box of `bytes` payload as the first child of `moov`,
     /// so the movie header outgrows a read budget. `moov` must follow `mdat`.
     GrowMoov { bytes: u64 },
+    /// Add an extended language box (`elng`) holding `tag` to the first
+    /// audio track. FFmpeg's MP4 muxer writes only the packed ISO 639-2 code
+    /// of `mdhd`, which cannot hold a BCP 47 tag. `moov` must follow `mdat`.
+    Mp4ExtendedLanguage { tag: String },
     /// Insert a Dolby Vision configuration box into the first video sample
     /// entry (HEVC, AVC or AV1) of `path` (`{out}` or a `{work}` file), with
     /// an explicit box type, optionally renaming the sample entry (for
@@ -140,6 +144,10 @@ pub(crate) fn apply(post: &Post, out: &Path, media_root: &Path, work: &Path) -> 
                 &child,
             )?;
             crate::corpus::write_atomic(out, &edited)
+        }
+        Post::Mp4ExtendedLanguage { tag } => {
+            let data = std::fs::read(out).context(|| format!("read {}", out.display()))?;
+            crate::corpus::write_atomic(out, &mp4_extended_language(&data, tag)?)
         }
         Post::GrowMoov { bytes } => {
             let data = std::fs::read(out).context(|| format!("read {}", out.display()))?;
@@ -318,6 +326,53 @@ fn mp4_insert(data: &[u8], path: &[&[u8; 4]], entry: SampleEntry, child: &[u8]) 
         out[offset..offset + 4].copy_from_slice(&size.to_be_bytes());
     }
     Ok(out)
+}
+
+/// Append an `elng` box to the media box of the first audio track and grow
+/// the boxes around it. Valid under the same condition as [`mp4_insert`].
+fn mp4_extended_language(data: &[u8], tag: &str) -> Result<Vec<u8>> {
+    let (moov, moov_size) = find_box(data, 0, data.len(), b"moov")?
+        .ok_or_else(|| crate::corpus::error("no moov box"))?;
+    match find_box(data, 0, data.len(), b"mdat")? {
+        Some((mdat, _)) if mdat < moov => {}
+        _ => return fail("moov must follow mdat: inserting would move chunk offsets"),
+    }
+    let moov_end = moov + moov_size;
+    let mut at = moov + 8;
+    while let Some((trak, trak_size)) = find_box(data, at, moov_end, b"trak")? {
+        at = trak + trak_size;
+        let Some((mdia, mdia_size)) = find_box(data, trak + 8, at, b"mdia")? else {
+            continue;
+        };
+        let mdia_end = mdia + mdia_size;
+        let Some((hdlr, _)) = find_box(data, mdia + 8, mdia_end, b"hdlr")? else {
+            continue;
+        };
+        // Full-box header, pre_defined, then the handler type.
+        if data.get(hdlr + 16..hdlr + 20) != Some(&b"soun"[..]) {
+            continue;
+        }
+        let size = u32::try_from(8 + 4 + tag.len() + 1)
+            .map_err(|_| crate::corpus::error("language tag too long"))?;
+        let mut child = Vec::with_capacity(size as usize);
+        child.extend_from_slice(&size.to_be_bytes());
+        child.extend_from_slice(b"elng");
+        child.extend_from_slice(&[0; 4]);
+        child.extend_from_slice(tag.as_bytes());
+        child.push(0);
+        let mut out = Vec::with_capacity(data.len() + child.len());
+        out.extend_from_slice(&data[..mdia_end]);
+        out.extend_from_slice(&child);
+        out.extend_from_slice(&data[mdia_end..]);
+        for offset in [moov, trak, mdia] {
+            let grown = be32(&out, offset)?
+                .checked_add(size)
+                .ok_or_else(|| crate::corpus::error("box size overflow"))?;
+            out[offset..offset + 4].copy_from_slice(&grown.to_be_bytes());
+        }
+        return Ok(out);
+    }
+    fail("no audio track")
 }
 
 fn le16(data: &[u8], at: usize) -> Result<u16> {
