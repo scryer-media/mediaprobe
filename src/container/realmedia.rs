@@ -8,6 +8,8 @@ use crate::{
 };
 use std::io::SeekFrom;
 const LIMIT: u64 = 1024 * 1024;
+/// How far a data object's declared size may run past the end of the file.
+const DATA_SIZE_SLACK: u64 = 10;
 enum Descriptor {
     Track(Box<RawTrack>),
     Metadata,
@@ -53,7 +55,16 @@ pub(crate) fn parse(source: &mut dyn MediaSource) -> Result<RawContainer, ProbeE
                 "RealMedia object offset overflow".into(),
             ));
         };
-        if end as u64 > source.len() {
+        // FFmpeg's muxer counts the object header twice in the size of the
+        // data object, so a complete file it wrote ends that many bytes
+        // short. Nothing after the data header is read, so that much is
+        // accepted and no more.
+        let slack = if &header[..4] == b"DATA" && at as u64 + 18 <= source.len() {
+            DATA_SIZE_SLACK
+        } else {
+            0
+        };
+        if end as u64 > source.len().saturating_add(slack) {
             return Err(ProbeError::Malformed("truncated RealMedia object".into()));
         }
         if &header[..4] == b"DATA" && size < 18 {
@@ -241,6 +252,7 @@ fn decode_mdpr(data: &[u8]) -> Option<RawTrack> {
                 b"sipr" => Some(Codec::Sipr),
                 b"atrc" => Some(Codec::Atrac3),
                 b"dnet" => Some(Codec::Ac3),
+                b"lpcJ" => Some(Codec::Ra144),
                 b"28_8" => Some(Codec::Ra288),
                 b"raac" | b"racp" => Some(Codec::Aac),
                 _ => None,
@@ -465,6 +477,20 @@ mod tests {
                 Err(ProbeError::Malformed(_))
             ));
         }
+    }
+
+    #[test]
+    fn data_size_may_count_its_header_twice_but_no_more() {
+        let overshoot = |extra: u32| {
+            let mut tail = object(b"DATA", &[0; 64]);
+            let size = u32::from_be_bytes(tail[4..8].try_into().unwrap()) + extra;
+            tail[4..8].copy_from_slice(&size.to_be_bytes());
+            parse(&mut Cursor::new([fixture(), tail].concat()))
+        };
+        let parsed = overshoot(10).unwrap();
+        assert_eq!(parsed.tracks.len(), 1);
+        assert!(!parsed.details.report.budget_exhausted);
+        assert!(matches!(overshoot(11), Err(ProbeError::Malformed(_))));
     }
 
     #[test]

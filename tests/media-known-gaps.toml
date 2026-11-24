@@ -129,8 +129,5 @@
 "lang/iso639_2_kor.mov" = ["audio.0.language", "audio_languages"]
 "lang/iso639_2b_fre.mkv" = ["audio.0.language", "audio_languages"]
 "large/avi_opendml_over_2g.avi" = ["min_duration_seconds"]
-"rm/rv10_ac3.rm" = ["error"]
-"rm/rv20_ac3.rmvb" = ["error"]
-"rm/rv20_real144.rm" = ["error"]
 "simd_scan_dense.bin" = ["container"]
 "subs/mov_text_forced_sdh.mp4" = ["subtitle.1.metadata.disposition.hearing_impaired"]
