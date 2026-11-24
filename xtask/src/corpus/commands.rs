@@ -554,9 +554,12 @@ fn verify_pinned_signature(lock: &Lock, source: &Source, manifest_bytes: &[u8]) 
     Ok(())
 }
 
+/// A required setting from the environment, without surrounding white
+/// space: a secret pasted with a trailing line break is still the secret.
 fn env_required(name: &str) -> Result<String> {
     std::env::var(name)
         .ok()
+        .map(|v| v.trim().to_owned())
         .filter(|v| !v.is_empty())
         .ok_or_else(|| error(format!("{name} is not set")))
 }
@@ -564,8 +567,8 @@ fn env_required(name: &str) -> Result<String> {
 fn publish(mut args: Args) -> Result<()> {
     let to_dir = args.path("to-dir")?;
     let r2 = args.switch("r2");
-    let bucket = args.value("bucket")?;
-    let public_url = args.value("public-url")?;
+    let bucket = args.value("bucket")?.map(|v| v.trim().to_owned());
+    let public_url = args.value("public-url")?.map(|v| v.trim().to_owned());
     let out = out_dir(&mut args)?;
     let root = root_arg(&mut args)?;
     let dry_run = args.switch("dry-run");
