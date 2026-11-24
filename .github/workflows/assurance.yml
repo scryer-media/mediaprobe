@@ -164,7 +164,7 @@ jobs:
       - name: Describe a sanitizer startup failure
         if: failure()
         run: |
-          set -u
+          set +e -u
           uname -srm
           echo "page size: $(getconf PAGESIZE)"
           echo "mmap_rnd_bits: $(sudo cat /proc/sys/vm/mmap_rnd_bits 2>&1)"
@@ -181,7 +181,15 @@ jobs:
           try "verbose runtime" env ASAN_OPTIONS="$ASAN_OPTIONS:verbosity=2" "$bin" --list --format terse
           try "without stack-use-after-return" env ASAN_OPTIONS=detect_leaks=0 "$bin" --list --format terse
           try "without address randomisation" setarch -R "$bin" --list --format terse
-          sudo dmesg | tail -n 20 || true
+          if command -v gdb >/dev/null; then
+            gdb -batch -ex run -ex bt -ex 'info sharedlibrary' --args "$bin" --list --format terse 2>&1 | tail -n 60
+          fi
+          sudo dmesg | tail -n 20
+          # The same tests against the toolchain's own standard library, to
+          # tell an instrumented std apart from the sanitizer runtime.
+          cargo "+$NIGHTLY" nextest run --locked --target "$TARGET" --features fuzzing --no-fail-fast --test unsafe_scanners 2>&1 | tail -n 15
+          echo "prebuilt std: exit $?"
+          exit 0
 
   # The differential once more under Valgrind's memcheck, which sees
   # uninitialised reads AddressSanitizer does not, on the release build the
