@@ -80,7 +80,9 @@ A crash found by any lane is fixed and recorded in
 `fuzz/src/regressions.rs` as a byte literal with the target it reproduces
 on. `fuzz/tests/regressions.rs` replays every one through the target's own
 entry point; the `fuzz-harness` job in `ci.yml` runs it, so a fixed crash
-stays fixed.
+stays fixed. A crash that is not fixed yet is recorded with `open: true`:
+the replay then expects it to fail, and fails itself once a fix lands,
+until the flag is cleared.
 
 ### The release campaign
 

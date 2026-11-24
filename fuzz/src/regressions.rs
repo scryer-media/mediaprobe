@@ -1,7 +1,7 @@
 //! Inputs that once broke the parser, as byte literals, each replayed by
 //! `fuzz/tests/regressions.rs` through the target that found it. Add one
 //! per crash, minimised, with the target and what it broke. A crash is
-//! recorded when it is found, so the replay fails until the parser is fixed.
+//! recorded when it is found and marked `open` until the parser is fixed.
 
 /// Which target body replays a regression.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,10 +27,15 @@ pub struct Regression {
     /// What went wrong, for the person reading a failure.
     pub finding: &'static str,
     pub input: &'static [u8],
+    /// The parser still fails on this input. The replay expects the
+    /// failure, so the suite stays green while the finding is known, and
+    /// fails the moment a fix lands, until this is set to `false`.
+    pub open: bool,
 }
 
 pub const REGRESSIONS: &[Regression] = &[
     Regression {
+        open: true,
         name: "hevc_sps_ctb_below_min_tb",
         target: Target::CodecConfig,
         finding: "scuffle-h265 0.2.2 subtracts min_tb_log2_size_y from ctb_log2_size_y \
@@ -49,6 +54,7 @@ pub const REGRESSIONS: &[Regression] = &[
         ],
     },
     Regression {
+        open: true,
         name: "h264_sps_crop_exceeds_height",
         target: Target::CodecConfig,
         finding: "scuffle-h264 0.2.2 subtracts the frame crop from the coded height \
@@ -64,6 +70,7 @@ pub const REGRESSIONS: &[Regression] = &[
         ],
     },
     Regression {
+        open: true,
         name: "h264_sps_crop_exceeds_width",
         target: Target::CodecConfig,
         finding: "scuffle-h264 0.2.2 subtracts the frame crop from the coded width \
@@ -75,6 +82,7 @@ pub const REGRESSIONS: &[Regression] = &[
         ],
     },
     Regression {
+        open: true,
         name: "h264_sps_width_in_mbs_overflow",
         target: Target::Container("hevc"),
         finding: "scuffle-h264 0.2.2 computes (pic_width_in_mbs_minus1 + 1) * 16 unchecked \

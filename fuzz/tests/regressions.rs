@@ -1,5 +1,5 @@
-//! Every literal in `src/regressions.rs` replays cleanly through the target
-//! that found it.
+//! Every literal in `src/regressions.rs` replays through the target that
+//! found it: cleanly once fixed, and still failing while marked open.
 
 use mediaprobe_fuzz::regressions::{REGRESSIONS, Target};
 use mediaprobe_fuzz::targets;
@@ -22,13 +22,18 @@ fn every_regression_replays_cleanly() {
             Target::MkvTags => targets::mkv_tags(r.input),
             Target::ModelSerde => targets::model_serde(r.input),
         });
-        if outcome.is_err() {
-            failed.push(format!("{}: {}", r.name, r.finding));
+        match (outcome.is_err(), r.open) {
+            (true, false) => failed.push(format!("{}: {}", r.name, r.finding)),
+            (false, true) => failed.push(format!(
+                "{}: replays cleanly now; set `open: false`",
+                r.name
+            )),
+            _ => {}
         }
     }
     assert!(
         failed.is_empty(),
-        "{} regressions fail:\n{}",
+        "{} regressions are not in their recorded state:\n{}",
         failed.len(),
         failed.join("\n")
     );

@@ -35,6 +35,31 @@ env:
   NEXTEST_VERSION: 0.9.143
 
 jobs:
+  # Whether a fixture corpus revision is pinned. Until the first one is
+  # published from main, test-corpus/lock.json names no manifest and the
+  # lanes that hydrate fixtures cannot run; they are skipped, and the
+  # completion gate allows exactly those skips and no others.
+  corpus:
+    name: corpus-state
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      published: ${{ steps.state.outputs.published }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Is a corpus revision pinned
+        id: state
+        run: |
+          set -eu
+          if jq -e '.manifest != null' test-corpus/lock.json > /dev/null; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::no fixture corpus is published; the lanes that need it are skipped"
+          fi
+
   # The scanners' unsafe code interpreted by Miri, on each architecture's
   # accelerated path: NEON natively on aarch64, AVX2 on x86_64 (enabled at
   # compile time, since Miri reports no CPU features at run time), and the
@@ -80,6 +105,8 @@ jobs:
   # bad read inside a std routine the scanners call is caught too. The unit
   # tests embed fixtures, so the unit corpus is hydrated first.
   asan:
+    needs: [corpus]
+    if: needs.corpus.outputs.published == 'true'
     name: asan-${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
@@ -187,6 +214,8 @@ jobs:
   # long searches are fuzz-extended.yml's, release-fuzz.yml's and
   # ClusterFuzzLite's.
   fuzz-short:
+    needs: [corpus]
+    if: needs.corpus.outputs.published == 'true'
     name: fuzz-short
     runs-on: ubuntu-26.04
     timeout-minutes: 75
@@ -223,6 +252,8 @@ jobs:
   # synthesised files are sparse on ext4, so they take a few MiB of the
   # runner's disk; the published ones take about 300 MiB.
   corpus-large:
+    needs: [corpus]
+    if: needs.corpus.outputs.published == 'true'
     name: corpus-large
     runs-on: ubuntu-26.04
     timeout-minutes: 45
@@ -252,17 +283,25 @@ jobs:
   assurance-complete:
     name: assurance-complete
     if: always()
-    needs: [miri, asan, valgrind, simd-differential, fuzz-short, corpus-large]
+    needs: [corpus, miri, asan, valgrind, simd-differential, fuzz-short, corpus-large]
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      # A skipped lane is as much a gap as a failed one.
+      # Every lane must have succeeded. The one exception: while no fixture
+      # corpus is published, the lanes that need it are skipped.
       - name: Require every lane to have succeeded
         env:
           RESULTS: ${{ toJSON(needs) }}
+          CORPUS_LANES: asan fuzz-short corpus-large
         run: |
           set -eu
-          failed="$(printf '%s' "$RESULTS" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"')"
+          failed="$(printf '%s' "$RESULTS" | jq -r --arg lanes "$CORPUS_LANES" '
+            (.corpus.outputs.published == "false") as $absent
+            | ($lanes | split(" ")) as $corpus
+            | to_entries[]
+            | select(.value.result != "success"
+                and ((.value.result == "skipped" and $absent and (.key as $k | $corpus | index($k))) | not))
+            | "\(.key): \(.value.result)"')"
           if [ -n "$failed" ]; then
             echo "lanes that did not succeed:" >&2
             echo "$failed" >&2
