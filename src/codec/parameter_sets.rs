@@ -143,9 +143,9 @@ fn hevc(data: &[u8]) -> Option<StreamMetadata> {
             .filter(|array| array.nal_unit_type == scuffle_h265::NALUnitType::SpsNut)
             .flat_map(|array| array.nalus.iter())
             .take(32)
-            .find_map(|nal| scuffle_h265::SpsNALUnit::parse(Cursor::new(nal.clone())).ok())?
+            .find_map(|nal| super::hevc::parse_sps(nal))?
     } else {
-        scuffle_h265::SpsNALUnit::parse(Cursor::new(data)).ok()?
+        super::hevc::parse_sps(data)?
     };
     let sps = &sps.rbsp;
     let profile = &sps.profile_tier_level.general_profile;

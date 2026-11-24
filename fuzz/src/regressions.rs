@@ -35,14 +35,15 @@ pub struct Regression {
 
 pub const REGRESSIONS: &[Regression] = &[
     Regression {
-        open: true,
+        open: false,
         name: "hevc_sps_ctb_below_min_tb",
         target: Target::CodecConfig,
         finding: "scuffle-h265 0.2.2 subtracts min_tb_log2_size_y from ctb_log2_size_y \
                   unchecked (sps/mod.rs:303), so an SPS whose transform block exceeds its \
                   coding tree block panics on overflow. Found by the bit-flip robustness \
                   test on Matroska HEVC Main; minimised to the SPS alone in a Matroska \
-                  hvcC. Open.",
+                  hvcC. Closed: the SPS block sizes are read and checked before the SPS \
+                  reaches the dependency.",
         // Selector 24: Matroska V_MPEGH/ISO/HEVC with this CodecPrivate, an
         // hvcC holding one SPS.
         input: &[

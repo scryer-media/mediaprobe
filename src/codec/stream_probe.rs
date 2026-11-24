@@ -42,7 +42,7 @@ pub(crate) fn probe_hevc_track(data: &[u8], track: &mut RawTrack) {
     let Some(sps_nal) = find_annexb_nal(data, |nal| ((nal[0] >> 1) & 0x3F) == 33) else {
         return;
     };
-    let Ok(sps) = scuffle_h265::SpsNALUnit::parse(std::io::Cursor::new(sps_nal)) else {
+    let Some(sps) = super::hevc::parse_sps(sps_nal) else {
         return;
     };
 
