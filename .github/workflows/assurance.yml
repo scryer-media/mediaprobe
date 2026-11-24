@@ -143,6 +143,15 @@ jobs:
           RUSTFLAGS: ''
           RUSTDOCFLAGS: ''
         run: cargo xtask test-corpus hydrate --profile unit
+      # AddressSanitizer maps its shadow memory at a fixed address. With the
+      # runner's default mmap randomisation a binary can land on top of it
+      # and die with SIGSEGV before main, which is how the aarch64 job
+      # failed while listing tests. Fewer random bits keep the two apart.
+      - name: Lower mmap randomisation for the sanitizer runtime
+        run: |
+          set -eu
+          sysctl vm.mmap_rnd_bits
+          sudo sysctl -w vm.mmap_rnd_bits=28
       - name: Scanners and tag bounds under AddressSanitizer
         run: >-
           cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
