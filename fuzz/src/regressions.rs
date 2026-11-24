@@ -54,13 +54,13 @@ pub const REGRESSIONS: &[Regression] = &[
         ],
     },
     Regression {
-        open: true,
+        open: false,
         name: "h264_sps_crop_exceeds_height",
         target: Target::CodecConfig,
         finding: "scuffle-h264 0.2.2 subtracts the frame crop from the coded height \
                   unchecked (sps/mod.rs:720), so a crop larger than the picture panics on \
                   overflow. Found by the bit-flip robustness test on a 65x33 Matroska \
-                  H.264 fixture; one flipped bit in the avcC. Open.",
+                  H.264 fixture; one flipped bit in the avcC. The crate now computes the picture size itself, checked.",
         // Selector 23: Matroska V_MPEG4/ISO/AVC with this CodecPrivate.
         input: &[
             0x17, 0x01, 0xF4, 0x00, 0x0A, 0xFF, 0xE1, 0x00, 0x1A, 0x67, 0xF4, 0x00, 0x0A, 0x91,
@@ -70,25 +70,25 @@ pub const REGRESSIONS: &[Regression] = &[
         ],
     },
     Regression {
-        open: true,
+        open: false,
         name: "h264_sps_crop_exceeds_width",
         target: Target::CodecConfig,
         finding: "scuffle-h264 0.2.2 subtracts the frame crop from the coded width \
                   unchecked (sps/mod.rs:731). Found by the codec_config fuzz target in \
-                  the first short run. Open.",
+                  the first short run. The crate now computes the picture size itself, checked.",
         input: &[
             0x00, 0x27, 0x51, 0xE0, 0x0B, 0x25, 0x2A, 0x3B, 0x3B, 0xB1, 0x13, 0x3B, 0xB1, 0x13,
             0x10, 0x01,
         ],
     },
     Regression {
-        open: true,
+        open: false,
         name: "h264_sps_width_in_mbs_overflow",
         target: Target::Container("hevc"),
         finding: "scuffle-h264 0.2.2 computes (pic_width_in_mbs_minus1 + 1) * 16 unchecked \
                   (sps/mod.rs:728), so a huge exp-Golomb width overflows. The input is \
                   an H.264 SPS behind a .hevc hint: the content sniffer takes it as H.264. \
-                  Found by the elementary_hevc fuzz target. Open.",
+                  Found by the elementary_hevc fuzz target. The crate now computes the picture size itself, checked.",
         input: &[
             0x00, 0x00, 0x00, 0x01, 0x67, 0x40, 0x01, 0x0C, 0xEA, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x02, 0xFF, 0xFF, 0xFF, 0xC5, 0x60, 0x00, 0x00, 0xE1, 0x79, 0x65, 0x8F,

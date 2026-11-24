@@ -23,8 +23,9 @@ pub(crate) fn probe_h264_track(data: &[u8], track: &mut RawTrack) {
         return;
     };
 
-    track.width = Some(sps.width() as i32);
-    track.height = Some(sps.height() as i32);
+    let size = crate::codec::h264::sps_dimensions(&sps);
+    track.width = size.map(|size| size.0);
+    track.height = size.map(|size| size.1);
     track.frame_rate_fps = sps.frame_rate();
     track.codec_private = Some(sps_nal.to_vec());
     track.color_transfer = sps.color_config.as_ref().and_then(|color| {
