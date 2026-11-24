@@ -117,14 +117,21 @@ jobs:
           - platform: linux-x86_64
             runner: ubuntu-26.04
             target: x86_64-unknown-linux-gnu
+            build_std: -Zbuild-std
+          # An instrumented standard library segfaults before main on this
+          # runner (every sanitizer option tried, with and without address
+          # randomisation), while the same tests pass against the
+          # toolchain's own. The crate's code is instrumented either way.
           - platform: linux-aarch64
             runner: ubuntu-26.04-arm
             target: aarch64-unknown-linux-gnu
+            build_std: ''
     env:
       RUSTFLAGS: -Zsanitizer=address
       RUSTDOCFLAGS: -Zsanitizer=address
       ASAN_OPTIONS: detect_leaks=0:detect_stack_use_after_return=1
       TARGET: ${{ matrix.target }}
+      BUILD_STD: ${{ matrix.build_std }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -143,53 +150,10 @@ jobs:
           RUSTFLAGS: ''
           RUSTDOCFLAGS: ''
         run: cargo xtask test-corpus hydrate --profile unit
-      # AddressSanitizer maps its shadow memory at a fixed address. With the
-      # runner's default mmap randomisation a binary can land on top of it
-      # and die with SIGSEGV before main, which is how the aarch64 job
-      # failed while listing tests. Fewer random bits keep the two apart.
-      - name: Lower mmap randomisation for the sanitizer runtime
-        run: |
-          set -u
-          knob=/proc/sys/vm/mmap_rnd_bits
-          echo "before: $(cat "$knob" 2>&1)"
-          echo 28 | sudo tee "$knob" >/dev/null || echo "::warning::could not lower $knob"
-          echo "after: $(cat "$knob" 2>&1)"
       - name: Scanners and tag bounds under AddressSanitizer
         run: >-
-          cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
+          cargo "+$NIGHTLY" nextest run --locked $BUILD_STD --target "$TARGET"
           --features fuzzing --no-fail-fast --test unsafe_scanners --test tag_limits --lib -E 'test(/scan/) | binary(unsafe_scanners) | binary(tag_limits)'
-      # A sanitizer binary that dies before main prints nothing. On failure,
-      # run one directly under a few variations so the log says which
-      # condition it depends on.
-      - name: Describe a sanitizer startup failure
-        if: failure()
-        run: |
-          set +e -u
-          uname -srm
-          echo "page size: $(getconf PAGESIZE)"
-          echo "mmap_rnd_bits: $(sudo cat /proc/sys/vm/mmap_rnd_bits 2>&1)"
-          bin="$(find "target/$TARGET/debug" -type f -executable -name 'unsafe_scanners-*' | head -n1)"
-          echo "binary: $bin"
-          [ -n "$bin" ] || exit 0
-          try() {
-            label="$1"; shift
-            "$@" >/dev/null 2>"$RUNNER_TEMP/asan.err"
-            echo "$label: exit $?"
-            tail -n 40 "$RUNNER_TEMP/asan.err"
-          }
-          try "as the job runs it" "$bin" --list --format terse
-          try "verbose runtime" env ASAN_OPTIONS="$ASAN_OPTIONS:verbosity=2" "$bin" --list --format terse
-          try "without stack-use-after-return" env ASAN_OPTIONS=detect_leaks=0 "$bin" --list --format terse
-          try "without address randomisation" setarch -R "$bin" --list --format terse
-          if command -v gdb >/dev/null; then
-            gdb -batch -ex run -ex bt -ex 'info sharedlibrary' --args "$bin" --list --format terse 2>&1 | tail -n 60
-          fi
-          sudo dmesg | tail -n 20
-          # The same tests against the toolchain's own standard library, to
-          # tell an instrumented std apart from the sanitizer runtime.
-          cargo "+$NIGHTLY" nextest run --locked --target "$TARGET" --features fuzzing --no-fail-fast --test unsafe_scanners 2>&1 | tail -n 15
-          echo "prebuilt std: exit $?"
-          exit 0
 
   # The differential once more under Valgrind's memcheck, which sees
   # uninitialised reads AddressSanitizer does not, on the release build the
