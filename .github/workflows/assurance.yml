@@ -136,7 +136,12 @@ jobs:
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      # The tooling is built by the pinned stable toolchain, which rejects
+      # the job's nightly-only sanitizer flag.
       - name: Hydrate the unit corpus
+        env:
+          RUSTFLAGS: ''
+          RUSTDOCFLAGS: ''
         run: cargo xtask test-corpus hydrate --profile unit
       - name: Scanners and tag bounds under AddressSanitizer
         run: >-
