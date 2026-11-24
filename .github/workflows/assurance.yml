@@ -158,6 +158,30 @@ jobs:
         run: >-
           cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
           --features fuzzing --no-fail-fast --test unsafe_scanners --test tag_limits --lib -E 'test(/scan/) | binary(unsafe_scanners) | binary(tag_limits)'
+      # A sanitizer binary that dies before main prints nothing. On failure,
+      # run one directly under a few variations so the log says which
+      # condition it depends on.
+      - name: Describe a sanitizer startup failure
+        if: failure()
+        run: |
+          set -u
+          uname -srm
+          echo "page size: $(getconf PAGESIZE)"
+          echo "mmap_rnd_bits: $(sudo cat /proc/sys/vm/mmap_rnd_bits 2>&1)"
+          bin="$(find "target/$TARGET/debug" -type f -executable -name 'unsafe_scanners-*' | head -n1)"
+          echo "binary: $bin"
+          [ -n "$bin" ] || exit 0
+          try() {
+            label="$1"; shift
+            "$@" >/dev/null 2>"$RUNNER_TEMP/asan.err"
+            echo "$label: exit $?"
+            tail -n 40 "$RUNNER_TEMP/asan.err"
+          }
+          try "as the job runs it" "$bin" --list --format terse
+          try "verbose runtime" env ASAN_OPTIONS="$ASAN_OPTIONS:verbosity=2" "$bin" --list --format terse
+          try "without stack-use-after-return" env ASAN_OPTIONS=detect_leaks=0 "$bin" --list --format terse
+          try "without address randomisation" setarch -R "$bin" --list --format terse
+          sudo dmesg | tail -n 20 || true
 
   # The differential once more under Valgrind's memcheck, which sees
   # uninitialised reads AddressSanitizer does not, on the release build the
