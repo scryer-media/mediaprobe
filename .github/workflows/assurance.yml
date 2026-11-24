@@ -149,9 +149,11 @@ jobs:
       # failed while listing tests. Fewer random bits keep the two apart.
       - name: Lower mmap randomisation for the sanitizer runtime
         run: |
-          set -eu
-          sysctl vm.mmap_rnd_bits
-          sudo sysctl -w vm.mmap_rnd_bits=28
+          set -u
+          knob=/proc/sys/vm/mmap_rnd_bits
+          echo "before: $(cat "$knob" 2>&1)"
+          echo 28 | sudo tee "$knob" >/dev/null || echo "::warning::could not lower $knob"
+          echo "after: $(cat "$knob" 2>&1)"
       - name: Scanners and tag bounds under AddressSanitizer
         run: >-
           cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
