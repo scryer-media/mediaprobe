@@ -1,0 +1,270 @@
+name: assurance
+
+# What ci.yml does not run on every lane: the unsafe code under Miri,
+# AddressSanitizer and Valgrind; the SIMD scanners fuzzed against the scalar
+# path on both architectures; a short seeded run of every fuzz target; and
+# the large fixtures, which run past 4 GiB. docs/unsafe-validation.md says
+# what each lane proves and docs/testing.md how to run it locally.
+#
+# The corpus-large, asan and fuzz-short lanes read the published fixture
+# corpus, so they fail until test-corpus-publish.yml has published it and
+# test-corpus/lock.json pins it. Miri, Valgrind and the SIMD differential
+# need no corpus.
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: mediaprobe-assurance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.97.1
+  # Miri, the sanitizers and cargo-fuzz need nightly; one pinned nightly
+  # for all of them, the same one release-fuzz.yml uses.
+  NIGHTLY: nightly-2026-11-23
+  CARGO_FUZZ_VERSION: 0.13.2
+  NEXTEST_VERSION: 0.9.143
+
+jobs:
+  # The scanners' unsafe code interpreted by Miri, on each architecture's
+  # accelerated path: NEON natively on aarch64, AVX2 on x86_64 (enabled at
+  # compile time, since Miri reports no CPU features at run time), and the
+  # x86_64 baseline. tests/unsafe_scanners.rs takes a smaller sweep under
+  # Miri. Measured on an Apple M-series machine: 104-525 s per lane.
+  miri:
+    name: miri-${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: aarch64-neon
+            runner: ubuntu-26.04-arm
+            rustflags: ""
+          - name: x86_64-avx2
+            runner: ubuntu-26.04
+            rustflags: "-C target-feature=+avx2"
+          - name: x86_64-baseline
+            runner: ubuntu-26.04
+            rustflags: ""
+    env:
+      RUSTFLAGS: ${{ matrix.rustflags }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.NIGHTLY }}
+          components: miri, rust-src
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      - name: Miri setup
+        run: cargo "+$NIGHTLY" miri setup
+      - name: Unsafe scanners under Miri
+        run: cargo "+$NIGHTLY" miri nextest run --locked --features fuzzing --test unsafe_scanners --no-fail-fast
+
+  # The same differential and the parser's scanner unit tests under
+  # AddressSanitizer, with the standard library rebuilt instrumented so a
+  # bad read inside a std routine the scanners call is caught too. The unit
+  # tests embed fixtures, so the unit corpus is hydrated first.
+  asan:
+    name: asan-${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            runner: ubuntu-26.04
+            target: x86_64-unknown-linux-gnu
+          - platform: linux-aarch64
+            runner: ubuntu-26.04-arm
+            target: aarch64-unknown-linux-gnu
+    env:
+      RUSTFLAGS: -Zsanitizer=address
+      RUSTDOCFLAGS: -Zsanitizer=address
+      ASAN_OPTIONS: detect_leaks=0:detect_stack_use_after_return=1
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.NIGHTLY }}
+          components: rust-src
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      - name: Hydrate the unit corpus
+        run: cargo xtask test-corpus hydrate --profile unit
+      - name: Scanners and tag bounds under AddressSanitizer
+        run: >-
+          cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
+          --features fuzzing --no-fail-fast --test unsafe_scanners --test tag_limits --lib -E 'test(/scan/) | binary(unsafe_scanners) | binary(tag_limits)'
+
+  # The differential once more under Valgrind's memcheck, which sees
+  # uninitialised reads AddressSanitizer does not, on the release build the
+  # crate ships as.
+  valgrind:
+    name: valgrind
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER: valgrind --error-exitcode=1 --track-origins=yes --leak-check=no
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      - name: Install Valgrind
+        run: |
+          set -eu
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends valgrind
+      - name: Unsafe scanners under Valgrind
+        run: cargo nextest run --locked --release --features fuzzing --test unsafe_scanners --no-fail-fast
+
+  # The SIMD-differential fuzz target, which runs every dispatched scanner
+  # and the scalar fallback on the same input and fails on any difference,
+  # for ten minutes on each architecture's accelerated path.
+  simd-differential:
+    name: simd-differential-${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            runner: ubuntu-26.04
+          - platform: linux-aarch64
+            runner: ubuntu-26.04-arm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.NIGHTLY }}
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-fuzz@${{ env.CARGO_FUZZ_VERSION }}
+      - name: Fuzz the scanners against the scalar path
+        run: |
+          set -eu
+          mkdir -p fuzz/corpus/simd_differential fuzz/artifacts/simd_differential
+          cargo "+$NIGHTLY" fuzz run -O -a simd_differential fuzz/corpus/simd_differential -- \
+            -max_total_time=600 -max_len=65536 -timeout=10 -rss_limit_mb=1024 \
+            -print_final_stats=1 -artifact_prefix=fuzz/artifacts/simd_differential/
+      - name: Upload reproducers
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: simd-differential-${{ matrix.platform }}-artifacts
+          path: fuzz/artifacts/simd_differential
+          if-no-files-found: ignore
+
+  # A short seeded run of every fuzz target from the small fixtures. The
+  # long searches are fuzz-extended.yml's, release-fuzz.yml's and
+  # ClusterFuzzLite's.
+  fuzz-short:
+    name: fuzz-short
+    runs-on: ubuntu-26.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.NIGHTLY }}
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-fuzz@${{ env.CARGO_FUZZ_VERSION }}
+      - name: Hydrate the fuzz seeds
+        run: cargo xtask test-corpus hydrate --profile fuzz-seeds
+      - name: Seed the corpora
+        run: fuzz/scripts/seed-corpora.sh
+      - name: Every target, briefly
+        env:
+          FUZZ_TOOLCHAIN: ${{ env.NIGHTLY }}
+        run: fuzz/scripts/smoke.sh 20000 60
+      - name: Upload reproducers
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-short-artifacts
+          path: fuzz/artifacts
+          if-no-files-found: ignore
+
+  # The large fixtures: the four published budget fixtures and the files
+  # past 1, 2 and 4 GiB that hydrate synthesises from small seeds. Each must
+  # analyse within the read and I/O budgets and report its streams, and the
+  # 100 MiB and over-4 GiB twins must cost the same to probe. The
+  # synthesised files are sparse on ext4, so they take a few MiB of the
+  # runner's disk; the published ones take about 300 MiB.
+  corpus-large:
+    name: corpus-large
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      MEDIAPROBE_FIXTURE_PROFILE: large
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      - name: Hydrate the large corpus
+        run: cargo xtask test-corpus hydrate --profile large
+      - name: Disk the large corpus takes
+        run: |
+          set -eu
+          du -sh --apparent-size tests/media/large
+          du -sh tests/media/large
+          df -h .
+      - name: Budgets, expectations and cost against length
+        run: cargo nextest run --locked --release --no-fail-fast --test budget --test media_fixtures
+
+  assurance-complete:
+    name: assurance-complete
+    if: always()
+    needs: [miri, asan, valgrind, simd-differential, fuzz-short, corpus-large]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      # A skipped lane is as much a gap as a failed one.
+      - name: Require every lane to have succeeded
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -eu
+          failed="$(printf '%s' "$RESULTS" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"')"
+          if [ -n "$failed" ]; then
+            echo "lanes that did not succeed:" >&2
+            echo "$failed" >&2
+            exit 1
+          fi

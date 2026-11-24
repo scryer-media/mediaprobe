@@ -27,8 +27,16 @@ jobs:
         with:
           tool: cargo-audit@0.22.2
 
-      - name: Audit Cargo dependencies
-        run: cargo audit
+      # Three lockfiles: the crate, the fuzz harness and the repository
+      # tooling. Each is its own workspace, so each is audited on its own.
+      - name: Audit the crate's dependencies
+        run: cargo audit --file Cargo.lock
+
+      - name: Audit the fuzz harness's dependencies
+        run: cargo audit --file fuzz/Cargo.lock
+
+      - name: Audit the repository tooling's dependencies
+        run: cargo audit --file xtask/Cargo.lock
 
   zizmor:
     name: zizmor

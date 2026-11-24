@@ -1,0 +1,257 @@
+[package]
+name = "mediaprobe-fuzz"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.97.1"
+license = "Apache-2.0"
+publish = false
+description = "cargo-fuzz targets, structure-aware mutators and the fuzz harness for mediaprobe."
+
+[package.metadata]
+cargo-fuzz = true
+
+# Its own workspace and lockfile, like xtask: nothing here reaches the
+# published crate's dependency graph.
+[workspace]
+
+[lib]
+name = "mediaprobe_fuzz"
+path = "src/lib.rs"
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+# The `fuzzing` feature exposes the internals the SIMD differential needs.
+mediaprobe = { path = "..", features = ["fuzzing"] }
+serde = "1"
+serde_json = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+# Every target links the same harness; optimise it like the targets.
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "container_mkv"
+path = "fuzz_targets/container_mkv.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_webm"
+path = "fuzz_targets/container_webm.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_mp4"
+path = "fuzz_targets/container_mp4.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_mov"
+path = "fuzz_targets/container_mov.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_avi"
+path = "fuzz_targets/container_avi.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_ts"
+path = "fuzz_targets/container_ts.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_m2ts"
+path = "fuzz_targets/container_m2ts.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_mpeg_ps"
+path = "fuzz_targets/container_mpeg_ps.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_vob"
+path = "fuzz_targets/container_vob.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_ogg"
+path = "fuzz_targets/container_ogg.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_flv"
+path = "fuzz_targets/container_flv.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_asf"
+path = "fuzz_targets/container_asf.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_realmedia"
+path = "fuzz_targets/container_realmedia.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "container_dv"
+path = "fuzz_targets/container_dv.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "elementary_h264"
+path = "fuzz_targets/elementary_h264.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "elementary_hevc"
+path = "fuzz_targets/elementary_hevc.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "elementary_mpegvideo"
+path = "fuzz_targets/elementary_mpegvideo.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "dispatch_any_extension"
+path = "fuzz_targets/dispatch_any_extension.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "codec_config"
+path = "fuzz_targets/codec_config.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "bitstream"
+path = "fuzz_targets/bitstream.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "hdr_sei"
+path = "fuzz_targets/hdr_sei.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "dolby_vision"
+path = "fuzz_targets/dolby_vision.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "disc_image"
+path = "fuzz_targets/disc_image.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "simd_differential"
+path = "fuzz_targets/simd_differential.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "budget_invariants"
+path = "fuzz_targets/budget_invariants.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "mp4_boxes"
+path = "fuzz_targets/mp4_boxes.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ebml_elements"
+path = "fuzz_targets/ebml_elements.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ts_packets"
+path = "fuzz_targets/ts_packets.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "disc_navigation"
+path = "fuzz_targets/disc_navigation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "probe_depths"
+path = "fuzz_targets/probe_depths.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "mkv_tags"
+path = "fuzz_targets/mkv_tags.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "model_serde"
+path = "fuzz_targets/model_serde.rs"
+test = false
+doc = false
+bench = false

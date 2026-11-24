@@ -1,0 +1,315 @@
+name: Release fuzz check
+
+# A long fuzzing campaign before a release, run by hand. Every fuzz target
+# (or the ones named) is fuzzed under AddressSanitizer with debug assertions
+# in two chained stages: stage 2 starts from the corpus stage 1 grew. The
+# verdict job fails the run, after every target has finished, if any target
+# produced a crash, a sanitizer report, a timeout or an out-of-memory.
+#
+# Layout. The plan job splits the targets into groups of four, one per core
+# of a standard runner, and each group is one job per stage. With all 32
+# targets that is 8 parallel jobs per stage. A stage job builds its group,
+# fuzzes until its deadline, and uploads the corpus, the reproducers and a
+# per-target summary; it has 350 minutes, under the 6-hour job limit, and
+# stops fuzzing 25 minutes before that so the upload always happens.
+#
+# Duration. `hours` (1 to 12, default 12) is the whole campaign. Each stage
+# fuzzes for half of it less 30 minutes of build and upload, and never longer
+# than 300 minutes, so 12 hours gives two stages of 300 minutes of fuzzing
+# each. docs/testing.md has the cost.
+#
+# Limits, per input (fuzz/scripts/release-fuzz.sh): 1024 MiB resident, 256
+# MiB in one allocation, 10 seconds, 1 MiB long. Over the seeded corpus
+# under this build every target peaked at 288 MiB resident or less and no
+# input took a second, so the limits leave 3.5 times and 10 times headroom.
+# The mkv_tags target builds files of tens of thousands of TagTrackUIDs
+# times hundreds of 4 KiB SimpleTags from small inputs: tag collection that
+# grew with their product held 40 GB for one such file, far past the
+# resident limit.
+#
+# There is no UndefinedBehaviorSanitizer for Rust; integer overflow is caught
+# by the debug assertions. MemorySanitizer needs the standard library rebuilt
+# with it (-Zbuild-std), which this workflow does not set up.
+
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: 'Campaign length in hours, 1 to 12'
+        required: false
+        default: '12'
+        type: string
+      targets:
+        description: 'Targets to fuzz, space-separated; empty for every target'
+        required: false
+        default: ''
+        type: string
+      seed-run:
+        description: 'A previous run of this workflow whose final corpus seeds this one (run ID); empty for none'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  FUZZ_TOOLCHAIN: nightly-2026-11-23
+  CARGO_FUZZ_VERSION: 0.13.2
+  GROUP_SIZE: 4
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      groups: ${{ steps.plan.outputs.groups }}
+      seconds: ${{ steps.plan.outputs.seconds }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Targets and stage length
+        id: plan
+        env:
+          HOURS: ${{ inputs.hours }}
+          TARGETS: ${{ inputs.targets }}
+          SEED_RUN: ${{ inputs.seed-run }}
+        run: |
+          set -euo pipefail
+          case "$HOURS" in '' | *[!0-9]*) echo "hours must be a whole number" >&2; exit 1 ;; esac
+          if [ "$HOURS" -lt 1 ] || [ "$HOURS" -gt 12 ]; then
+            echo "hours must be 1 to 12, got $HOURS" >&2
+            exit 1
+          fi
+          case "$SEED_RUN" in *[!0-9]*) echo "seed-run must be a run ID" >&2; exit 1 ;; esac
+          # Every [[bin]] of the fuzz crate is a target.
+          all="$(awk '/^\[\[bin\]\]/ { bin = 1; next } bin && /^name = / { gsub(/"/, "", $3); print $3; bin = 0 }' fuzz/Cargo.toml)"
+          if [ -z "$TARGETS" ]; then
+            chosen="$all"
+          else
+            chosen=""
+            for target in $TARGETS; do
+              if ! printf '%s\n' "$all" | grep -qxF -- "$target"; then
+                echo "unknown target: $target" >&2
+                exit 1
+              fi
+              chosen="$chosen $target"
+            done
+          fi
+          groups="$(for target in $chosen; do printf '%s\n' "$target"; done | sort -u | awk -v size="$GROUP_SIZE" '
+            { group = int((NR - 1) / size); names[group] = names[group] (names[group] == "" ? "" : " ") $0; n = group }
+            END { printf "["; for (g = 0; g <= n; g++) printf "%s{\"id\":\"g%02d\",\"targets\":\"%s\"}", (g ? "," : ""), g, names[g]; printf "]" }')"
+          minutes=$(( HOURS * 60 / 2 - 30 ))
+          [ "$minutes" -gt 300 ] && minutes=300
+          [ "$minutes" -lt 15 ] && minutes=15
+          echo "groups=$groups" >> "$GITHUB_OUTPUT"
+          echo "seconds=$(( minutes * 60 ))" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Plan"
+            echo "Stage length: $minutes minutes of fuzzing, two stages."
+            echo '```'
+            echo "$groups"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  stage-1:
+    name: stage 1 (${{ matrix.group.id }})
+    needs: [plan]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 350
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        group: ${{ fromJSON(needs.plan.outputs.groups) }}
+    steps:
+      - name: Deadline
+        run: echo "DEADLINE=$(( $(date +%s) + 325 * 60 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.FUZZ_TOOLCHAIN }}
+      - name: Install cargo-fuzz
+        run: cargo +"$FUZZ_TOOLCHAIN" install cargo-fuzz --locked --version "$CARGO_FUZZ_VERSION"
+      - name: Seed from the small-fixture corpus
+        run: |
+          set -eu
+          cargo xtask test-corpus hydrate --profile fuzz-seeds
+          fuzz/scripts/seed-corpora.sh tests/media fuzz/corpus
+      - name: Seed from a saved corpus
+        if: inputs.seed-run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEED_RUN: ${{ inputs.seed-run }}
+          GROUP: ${{ matrix.group.id }}
+        run: |
+          set -eu
+          # The final corpus of an earlier run, if it kept one for this group.
+          gh run download "$SEED_RUN" --repo "$GITHUB_REPOSITORY" --name "release-fuzz-corpus-2-$GROUP" --dir saved || true
+          if [ -d saved ]; then
+            cp -R saved/. fuzz/corpus/
+          fi
+      - name: Fuzz
+        env:
+          SECONDS_PLANNED: ${{ needs.plan.outputs.seconds }}
+          TARGETS: ${{ matrix.group.targets }}
+        run: |
+          set -eu
+          export RUSTUP_TOOLCHAIN="$FUZZ_TOOLCHAIN"
+          # Build time comes out of the stage; whatever remains before the
+          # deadline, up to the planned length, is fuzzing.
+          left=$(( DEADLINE - $(date +%s) - 20 * 60 ))
+          seconds=$(( SECONDS_PLANNED < left ? SECONDS_PLANNED : left ))
+          [ "$seconds" -gt 60 ] || { echo "no time left to fuzz" >&2; exit 1; }
+          # shellcheck disable=SC2086 # TARGETS is a space-separated list.
+          fuzz/scripts/release-fuzz.sh "$seconds" fuzz/corpus out $TARGETS
+      - name: Keep the corpus
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-fuzz-corpus-1-${{ matrix.group.id }}
+          path: fuzz/corpus
+          if-no-files-found: error
+          retention-days: 30
+      - name: Keep the findings and summaries
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-fuzz-results-1-${{ matrix.group.id }}
+          path: |
+            out/summary
+            out/artifacts
+            out/logs
+          if-no-files-found: error
+          retention-days: 90
+
+  stage-2:
+    name: stage 2 (${{ matrix.group.id }})
+    needs: [plan, stage-1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 350
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        group: ${{ fromJSON(needs.plan.outputs.groups) }}
+    steps:
+      - name: Deadline
+        run: echo "DEADLINE=$(( $(date +%s) + 325 * 60 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.FUZZ_TOOLCHAIN }}
+      - name: Install cargo-fuzz
+        run: cargo +"$FUZZ_TOOLCHAIN" install cargo-fuzz --locked --version "$CARGO_FUZZ_VERSION"
+      - name: Restore the stage 1 corpus
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GROUP: ${{ matrix.group.id }}
+        run: |
+          set -eu
+          mkdir -p fuzz/corpus
+          if ! gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "release-fuzz-corpus-1-$GROUP" --dir fuzz/corpus; then
+            # Stage 1 of this group kept nothing (it failed to build or was
+            # cancelled); start again from the seeds.
+            echo "::warning::no stage 1 corpus for $GROUP; seeding afresh"
+            cargo xtask test-corpus hydrate --profile fuzz-seeds
+            fuzz/scripts/seed-corpora.sh tests/media fuzz/corpus
+          fi
+      - name: Fuzz
+        env:
+          SECONDS_PLANNED: ${{ needs.plan.outputs.seconds }}
+          TARGETS: ${{ matrix.group.targets }}
+        run: |
+          set -eu
+          export RUSTUP_TOOLCHAIN="$FUZZ_TOOLCHAIN"
+          left=$(( DEADLINE - $(date +%s) - 20 * 60 ))
+          seconds=$(( SECONDS_PLANNED < left ? SECONDS_PLANNED : left ))
+          [ "$seconds" -gt 60 ] || { echo "no time left to fuzz" >&2; exit 1; }
+          # shellcheck disable=SC2086 # TARGETS is a space-separated list.
+          fuzz/scripts/release-fuzz.sh "$seconds" fuzz/corpus out $TARGETS
+      - name: Keep the corpus
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-fuzz-corpus-2-${{ matrix.group.id }}
+          path: fuzz/corpus
+          if-no-files-found: error
+          retention-days: 90
+      - name: Keep the findings and summaries
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-fuzz-results-2-${{ matrix.group.id }}
+          path: |
+            out/summary
+            out/artifacts
+            out/logs
+          if-no-files-found: error
+          retention-days: 90
+
+  verdict:
+    name: verdict
+    needs: [plan, stage-1, stage-2]
+    if: ${{ always() }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Collect the summaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern 'release-fuzz-results-*' --dir results || true
+      - name: Per-target summary and verdict
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -eu
+          summaries="$(find results -path '*/summary/*.json' 2>/dev/null | sort || true)"
+          {
+            echo "### Release fuzz check"
+            echo
+            echo "| stage | target | executions | coverage | features | new entries | findings |"
+            echo "|---|---|---:|---:|---:|---:|---:|"
+            for file in $summaries; do
+              stage="$(printf '%s' "$file" | sed -nE 's#results/release-fuzz-results-([0-9])-.*#\1#p')"
+              jq -r --arg stage "$stage" '"| \($stage) | \(.target) | \(.executions) | \(.coverage) | \(.features) | \(.new_entries) | \(.findings) \(.finding_kinds | to_entries | map("\(.key) \(.value)") | join(", ")) |"' "$file"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          failed=0
+          # Every stage job must have run to the end.
+          if ! printf '%s' "$RESULTS" | jq -e 'all(.[]; .result == "success")' > /dev/null; then
+            echo "a job did not succeed: $RESULTS" >&2
+            failed=1
+          fi
+          if [ -z "$summaries" ]; then
+            echo "no summaries were kept" >&2
+            failed=1
+          fi
+          for file in $summaries; do
+            if [ "$(jq '.findings' "$file")" != "0" ] || [ "$(jq '.ran' "$file")" != "true" ]; then
+              echo "finding or no run: $(cat "$file")" >&2
+              failed=1
+            fi
+          done
+          exit "$failed"

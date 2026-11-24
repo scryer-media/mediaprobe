@@ -1,0 +1,38 @@
+[package]
+name = "xtask"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.97.1"
+license = "Apache-2.0"
+publish = false
+description = "Repository tooling for mediaprobe: the generated, CDN-hosted test corpus."
+
+# xtask is its own workspace with its own lockfile, so its dependencies never
+# reach the published crate's lockfile or its audit surface. Run it with
+# `cargo run --locked --manifest-path xtask/Cargo.toml -- <command>`, or the
+# `cargo xtask` alias in .cargo/config.toml.
+[workspace]
+
+[dependencies]
+blake3 = { version = "1.8", default-features = false, features = ["std"] }
+# SigV4, which R2's S3 endpoint requires for a signed PUT, specifies
+# HMAC-SHA256. That signature is the only place SHA-256 appears: the corpus
+# itself is addressed and verified with BLAKE3 throughout.
+hmac = "0.13"
+sha2 = "0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Blocking HTTP over rustls with bundled roots: no async runtime, no system
+# TLS library. Compression stays off so every body is the content-addressed
+# bytes themselves.
+ureq = { version = "3.4", default-features = false, features = ["rustls"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[profile.dev]
+# Digesting a few hundred MiB of fixtures in an unoptimised build is slow.
+opt-level = 1
+
+[profile.dev.package.blake3]
+opt-level = 3

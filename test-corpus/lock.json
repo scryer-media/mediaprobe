@@ -1,0 +1,10 @@
+{
+  "base_url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev",
+  "certificate_identity": "https://github.com/scryer-media/mediaprobe/.github/workflows/test-corpus-publish.yml@refs/heads/main",
+  "certificate_oidc_issuer": "https://token.actions.githubusercontent.com",
+  "manifest": null,
+  "provenance": null,
+  "published_from": null,
+  "schema_version": 1,
+  "signature": null
+}

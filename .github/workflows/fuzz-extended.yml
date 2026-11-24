@@ -1,0 +1,103 @@
+name: fuzz-extended
+
+# Every fuzz target for 30 minutes in its own job, weekly, seeded from the
+# small fixtures, with debug assertions so integer overflow is a finding.
+# Between assurance.yml's minute per target on each change and
+# release-fuzz.yml's 12-hour campaign before a release. Reproducers are
+# uploaded per target.
+#
+# Switched off until the corpus is first published: the seeds come from it.
+# To switch on, uncomment the schedule trigger (docs/testing.md, "Switching
+# on").
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: 'Minutes per target, 1 to 300'
+        required: false
+        default: '30'
+        type: string
+  # schedule:
+  #   # Sundays at 09:17 UTC.
+  #   - cron: '17 9 * * 0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  NIGHTLY: nightly-2026-11-23
+  CARGO_FUZZ_VERSION: 0.13.2
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      targets: ${{ steps.plan.outputs.targets }}
+      seconds: ${{ steps.plan.outputs.seconds }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Targets
+        id: plan
+        env:
+          MINUTES: ${{ inputs.minutes || '30' }}
+        run: |
+          set -euo pipefail
+          case "$MINUTES" in '' | *[!0-9]*) echo "minutes must be a whole number" >&2; exit 1 ;; esac
+          if [ "$MINUTES" -lt 1 ] || [ "$MINUTES" -gt 300 ]; then
+            echo "minutes must be 1 to 300, got $MINUTES" >&2
+            exit 1
+          fi
+          # Every [[bin]] of the fuzz crate is a target.
+          targets="$(awk '/^\[\[bin\]\]/ { bin = 1; next } bin && /^name = / { gsub(/"/, "", $3); print $3; bin = 0 }' fuzz/Cargo.toml \
+            | jq -R . | jq -cs .)"
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+          echo "seconds=$(( MINUTES * 60 ))" >> "$GITHUB_OUTPUT"
+
+  fuzz:
+    name: ${{ matrix.target }}
+    needs: [plan]
+    runs-on: ubuntu-26.04
+    # The run, a 20-minute build and hydrate allowance, and the upload.
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.targets) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.NIGHTLY }}
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-fuzz@${{ env.CARGO_FUZZ_VERSION }}
+      - name: Hydrate the fuzz seeds
+        run: cargo xtask test-corpus hydrate --profile fuzz-seeds
+      - name: Seed the corpora
+        run: fuzz/scripts/seed-corpora.sh
+      - name: Fuzz
+        env:
+          FUZZ_TOOLCHAIN: ${{ env.NIGHTLY }}
+          FUZZ_TARGETS: ${{ matrix.target }}
+          SECONDS_PER_TARGET: ${{ needs.plan.outputs.seconds }}
+        # -1 runs: unbounded, so the time limit ends the run.
+        run: fuzz/scripts/smoke.sh -1 "$SECONDS_PER_TARGET"
+      - name: Upload reproducers
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-extended-${{ matrix.target }}
+          path: fuzz/artifacts/${{ matrix.target }}
+          if-no-files-found: ignore
