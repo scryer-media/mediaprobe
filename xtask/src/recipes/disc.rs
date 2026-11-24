@@ -11,6 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use super::inject::{Inject, NalCodec, NalInsert};
 use super::post::Post;
 use super::{Expect, Fixture, Generator, Step};
 use crate::corpus::{Context as _, Result, error, fail};
@@ -1896,9 +1897,12 @@ pub(crate) fn fixtures() -> Vec<Fixture> {
         colour_space,
         hdr10plus,
     };
-    let uhd = |video: ClipVideo, params: String, label: &'static str, extra: Vec<Step>| {
+    // `params` encodes the clip; `None` means `extra` has already written it.
+    let uhd = |video: ClipVideo, params: Option<String>, label: &'static str, extra: Vec<Step>| {
         let mut steps = extra;
-        steps.push(bd_clip("u.m2ts", "3840x2160", x265_bd(&params), &["5.1"]));
+        if let Some(params) = params {
+            steps.push(bd_clip("u.m2ts", "3840x2160", x265_bd(&params), &["5.1"]));
+        }
         steps.push(disc_step(Disc::Bluray(Bluray {
             label,
             uhd: true,
@@ -1930,21 +1934,69 @@ pub(crate) fn fixtures() -> Vec<Fixture> {
     e.hdr_format = Some("HDR10");
     v.push(iso(
         "uhd_hdr10.iso",
-        uhd(hevc(1, 2, false), hdr10.clone(), "CORPUS_UHD", vec![]),
+        uhd(hevc(1, 2, false), Some(hdr10.clone()), "CORPUS_UHD", vec![]),
         e,
         &["libx265", "ac3"],
     ));
 
+    // HDR10+ is written by the injector, not asked of the encoder: a libx265
+    // build may drop `dhdr10-info` silently.
     let mut e = uhd_expect().check("video.metadata.hdr.hdr10plus", true);
     e.hdr_format = Some("HDR10+");
-    let json = Step::WriteFile {
-        name: "hdr10plus.json".into(),
-        contents: super::coverage::HDR10PLUS_JSON.into(),
-    };
-    let plus = format!("{hdr10}:dhdr10-info={{work}}/hdr10plus.json");
+    let mut encode = vec![s(&[
+        "-f",
+        "lavfi",
+        "-i",
+        "smptehdbars=size=3840x2160:rate=24000/1001:duration=1",
+    ])];
+    encode.push(x265_bd(&format!("{hdr10}:bframes=0")));
+    encode.push(s(&["-f", "hevc", "{work}/u.hevc"]));
+    let mux = vec![s(&[
+        "-framerate",
+        "24000/1001",
+        "-f",
+        "hevc",
+        "-i",
+        "{work}/u.sei.hevc",
+        "-f",
+        "lavfi",
+        "-t",
+        "1",
+        "-i",
+        "anullsrc=r=48000:cl=5.1",
+        "-map",
+        "0:v",
+        "-map",
+        "1:a",
+        "-c:v",
+        "copy",
+        "-bsf:v",
+        "setts=ts=N*1001/(24000*TB)",
+        "-c:a",
+        "ac3",
+        "-b:a",
+        "192k",
+        "-mpegts_m2ts_mode",
+        "1",
+        "-f",
+        "mpegts",
+        "{work}/u.m2ts",
+    ])];
+    let clip = vec![
+        ffmpeg(encode),
+        Step::Post(Post::Inject {
+            from: "{work}/u.hevc".into(),
+            to: "{work}/u.sei.hevc".into(),
+            inject: Inject::AnnexB {
+                codec: NalCodec::Hevc,
+                inserts: vec![NalInsert::Hdr10Plus],
+            },
+        }),
+        ffmpeg(mux),
+    ];
     v.push(iso(
         "uhd_hdr10plus.iso",
-        uhd(hevc(1, 2, true), plus, "CORPUS_UHD_PLUS", vec![json]),
+        uhd(hevc(1, 2, true), None, "CORPUS_UHD_PLUS", clip),
         e,
         &["libx265", "ac3"],
     ));
@@ -1955,7 +2007,7 @@ pub(crate) fn fixtures() -> Vec<Fixture> {
     e.hdr_format = Some("Dolby Vision");
     v.push(iso(
         "uhd_dolby_vision_declared.iso",
-        uhd(hevc(2, 2, false), hdr10, "CORPUS_UHD_DV", vec![]),
+        uhd(hevc(2, 2, false), Some(hdr10), "CORPUS_UHD_DV", vec![]),
         e,
         &["libx265", "ac3"],
     ));
@@ -1968,7 +2020,7 @@ pub(crate) fn fixtures() -> Vec<Fixture> {
         .absent("summary.video_hdr_format");
     v.push(iso(
         "uhd_hdr10_declared_over_sdr.iso",
-        uhd(hevc(1, 2, false), sdr, "CORPUS_UHD_CONFLICT", vec![]),
+        uhd(hevc(1, 2, false), Some(sdr), "CORPUS_UHD_CONFLICT", vec![]),
         e,
         &["libx265", "ac3"],
     ));

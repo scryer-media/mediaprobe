@@ -117,14 +117,21 @@ jobs:
           - platform: linux-x86_64
             runner: ubuntu-26.04
             target: x86_64-unknown-linux-gnu
+            build_std: -Zbuild-std
+          # An instrumented standard library segfaults before main on this
+          # runner (every sanitizer option tried, with and without address
+          # randomisation), while the same tests pass against the
+          # toolchain's own. The crate's code is instrumented either way.
           - platform: linux-aarch64
             runner: ubuntu-26.04-arm
             target: aarch64-unknown-linux-gnu
+            build_std: ''
     env:
       RUSTFLAGS: -Zsanitizer=address
       RUSTDOCFLAGS: -Zsanitizer=address
       ASAN_OPTIONS: detect_leaks=0:detect_stack_use_after_return=1
       TARGET: ${{ matrix.target }}
+      BUILD_STD: ${{ matrix.build_std }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -136,11 +143,16 @@ jobs:
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: cargo-nextest@${{ env.NEXTEST_VERSION }}
+      # The tooling is built by the pinned stable toolchain, which rejects
+      # the job's nightly-only sanitizer flag.
       - name: Hydrate the unit corpus
+        env:
+          RUSTFLAGS: ''
+          RUSTDOCFLAGS: ''
         run: cargo xtask test-corpus hydrate --profile unit
       - name: Scanners and tag bounds under AddressSanitizer
         run: >-
-          cargo "+$NIGHTLY" nextest run --locked -Zbuild-std --target "$TARGET"
+          cargo "+$NIGHTLY" nextest run --locked $BUILD_STD --target "$TARGET"
           --features fuzzing --no-fail-fast --test unsafe_scanners --test tag_limits --lib -E 'test(/scan/) | binary(unsafe_scanners) | binary(tag_limits)'
 
   # The differential once more under Valgrind's memcheck, which sees

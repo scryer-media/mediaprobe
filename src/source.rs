@@ -376,6 +376,16 @@ mod tests {
         assert!(source.unchanged(&path).unwrap());
         let replacement = directory.0.join("replacement");
         std::fs::write(&replacement, b"replaced").unwrap();
+        // Without a file identity to compare, only the modification time
+        // tells an equal-sized replacement apart, and two writes this close
+        // together can share one clock tick.
+        #[cfg(not(unix))]
+        std::fs::File::options()
+            .write(true)
+            .open(&replacement)
+            .unwrap()
+            .set_modified(std::time::SystemTime::now() - std::time::Duration::from_secs(60))
+            .unwrap();
         std::fs::rename(&replacement, &path).unwrap();
         assert!(!source.unchanged(&path).unwrap());
     }

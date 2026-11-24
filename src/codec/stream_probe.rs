@@ -23,8 +23,9 @@ pub(crate) fn probe_h264_track(data: &[u8], track: &mut RawTrack) {
         return;
     };
 
-    track.width = Some(sps.width() as i32);
-    track.height = Some(sps.height() as i32);
+    let size = crate::codec::h264::sps_dimensions(&sps);
+    track.width = size.map(|size| size.0);
+    track.height = size.map(|size| size.1);
     track.frame_rate_fps = sps.frame_rate();
     track.codec_private = Some(sps_nal.to_vec());
     track.color_transfer = sps.color_config.as_ref().and_then(|color| {
@@ -41,7 +42,7 @@ pub(crate) fn probe_hevc_track(data: &[u8], track: &mut RawTrack) {
     let Some(sps_nal) = find_annexb_nal(data, |nal| ((nal[0] >> 1) & 0x3F) == 33) else {
         return;
     };
-    let Ok(sps) = scuffle_h265::SpsNALUnit::parse(std::io::Cursor::new(sps_nal)) else {
+    let Some(sps) = super::hevc::parse_sps(sps_nal) else {
         return;
     };
 

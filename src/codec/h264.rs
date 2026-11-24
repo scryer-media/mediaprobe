@@ -3,6 +3,37 @@
 use super::CodecInfo;
 use crate::scan;
 
+/// The cropped picture size an SPS declares, or `None` when its fields do
+/// not describe one. The parser's own `width` and `height` do this
+/// arithmetic unchecked, so a crop larger than the picture, or a huge
+/// macroblock count, overflows there.
+pub(crate) fn sps_dimensions(sps: &scuffle_h264::Sps) -> Option<(i32, i32)> {
+    let crop = sps.frame_crop_info.as_ref();
+    let cropped = |units: u64, scale: u64, low: u64, high: u64| {
+        let full = units.checked_add(1)?.checked_mul(16)?.checked_mul(scale)?;
+        let lost = low.checked_add(high)?.checked_mul(2)?;
+        i32::try_from(full.checked_sub(lost)?).ok()
+    };
+    let field_scale = if sps.mb_adaptive_frame_field_flag.is_none() {
+        1
+    } else {
+        2
+    };
+    let width = cropped(
+        sps.pic_width_in_mbs_minus1,
+        1,
+        crop.map_or(0, |c| c.frame_crop_left_offset),
+        crop.map_or(0, |c| c.frame_crop_right_offset),
+    )?;
+    let height = cropped(
+        sps.pic_height_in_map_units_minus1,
+        field_scale,
+        crop.map_or(0, |c| c.frame_crop_top_offset),
+        crop.map_or(0, |c| c.frame_crop_bottom_offset),
+    )?;
+    Some((width, height))
+}
+
 /// Extracts codec profile and bit depth from an H.264 AVCDecoderConfigurationRecord.
 ///
 /// The input bytes are the raw codec-private data stored in the container
@@ -69,10 +100,12 @@ pub(crate) fn extract_h264_info(codec_private: &[u8]) -> CodecInfo {
             color_transfer,
             width: first_sps
                 .as_ref()
-                .and_then(|sps| i32::try_from(sps.width()).ok()),
+                .and_then(sps_dimensions)
+                .map(|size| size.0),
             height: first_sps
                 .as_ref()
-                .and_then(|sps| i32::try_from(sps.height()).ok()),
+                .and_then(sps_dimensions)
+                .map(|size| size.1),
             frame_rate_fps: first_sps.as_ref().and_then(Sps::frame_rate),
         };
     }
@@ -100,8 +133,8 @@ pub(crate) fn extract_h264_info(codec_private: &[u8]) -> CodecInfo {
         profile: map_h264_profile(sps.profile_idc),
         bit_depth,
         color_transfer,
-        width: i32::try_from(sps.width()).ok(),
-        height: i32::try_from(sps.height()).ok(),
+        width: sps_dimensions(&sps).map(|size| size.0),
+        height: sps_dimensions(&sps).map(|size| size.1),
         frame_rate_fps: sps.frame_rate(),
     }
 }

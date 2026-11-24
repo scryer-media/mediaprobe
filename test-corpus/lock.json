@@ -2,9 +2,20 @@
   "base_url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev",
   "certificate_identity": "https://github.com/scryer-media/mediaprobe/.github/workflows/test-corpus-publish.yml@refs/heads/main",
   "certificate_oidc_issuer": "https://token.actions.githubusercontent.com",
-  "manifest": null,
-  "provenance": null,
-  "published_from": null,
+  "manifest": {
+    "blake3": "ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0",
+    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.json"
+  },
+  "provenance": {
+    "blake3": "ed67e0eea1c19d159ca84c002a8713a4bbc422185fbf742c18bc48eea4a540c9",
+    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.provenance.json"
+  },
+  "published_from": {
+    "commit": "3a14f0da3c37dae1db2d1c8d67eb6150654749ec",
+    "run": "https://github.com/scryer-media/mediaprobe/actions/runs/45462054718"
+  },
   "schema_version": 1,
-  "signature": null
+  "signature": {
+    "bundle_url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.json.sigstore.json"
+  }
 }
