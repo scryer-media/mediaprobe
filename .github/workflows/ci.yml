@@ -23,6 +23,31 @@ env:
   RUST_TOOLCHAIN: 1.97.1
 
 jobs:
+  # Whether a fixture corpus revision is pinned. Until the first one is
+  # published from main, test-corpus/lock.json names no manifest and the
+  # lanes that hydrate fixtures cannot run; they are skipped, and the
+  # completion gate allows exactly those skips and no others.
+  corpus:
+    name: corpus-state
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      published: ${{ steps.state.outputs.published }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Is a corpus revision pinned
+        id: state
+        run: |
+          set -eu
+          if jq -e '.manifest != null' test-corpus/lock.json > /dev/null; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::no fixture corpus is published; the lanes that need it are skipped"
+          fi
+
   # The repository carries no binaries, no personal paths and no
   # credentials. The pre-commit hook checks staged changes on a
   # contributor's machine; this checks the tree whatever the hook saw.
@@ -86,6 +111,8 @@ jobs:
       - run: cargo fmt --all --check
 
   clippy:
+    needs: [corpus]
+    if: needs.corpus.outputs.published == 'true'
     name: clippy-${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
@@ -109,6 +136,10 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: clippy
+      # The parser's unit tests embed fixtures with include_bytes!, so the
+      # test targets do not compile until the pinned corpus is in place.
+      - name: Hydrate the unit corpus
+        run: cargo xtask test-corpus hydrate --profile unit
       - name: All features
         run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
       - name: Default features
@@ -130,6 +161,8 @@ jobs:
       - run: cargo doc --locked --no-deps --all-features
 
   test:
+    needs: [corpus]
+    if: needs.corpus.outputs.published == 'true'
     name: test-${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
@@ -149,6 +182,13 @@ jobs:
             runner: windows-2025
           - platform: windows-aarch64
             runner: windows-11-arm
+          # The same tests with the SIMD scanners switched off, so the scalar
+          # fallbacks every other lane bypasses on a capable CPU are run too.
+          - platform: linux-x86_64-scalar
+            runner: ubuntu-26.04
+            accel: "off"
+    env:
+      SCRYER_MEDIAINFO_ACCEL: ${{ matrix.accel || 'auto' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -159,6 +199,10 @@ jobs:
       - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         with:
           tool: cargo-nextest@0.9.143
+      # The parser's unit tests embed fixtures with include_bytes!, so the
+      # test targets do not compile until the pinned corpus is in place.
+      - name: Hydrate the unit corpus
+        run: cargo xtask test-corpus hydrate --profile unit
       # Nextest runs every test in its own process, so one test's crash or
       # leaked state cannot hide another's result. It does not run doctests;
       # `cargo test --doc` does, for each feature set.
@@ -170,6 +214,41 @@ jobs:
         run: cargo nextest run --locked --no-fail-fast
       - name: Doctests, default features
         run: cargo test --doc --locked --no-fail-fast
+
+  # The crate with the parser switched off: the result types and serde
+  # alone. Needs no corpus, since every embedded fixture is behind `probe`.
+  no-default-features:
+    name: no-default-features
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: clippy
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@0.9.143
+      - name: Build
+        run: cargo build --locked --no-default-features
+      - name: Lints
+        run: cargo clippy --locked --no-default-features --all-targets -- -D warnings
+      - name: Only serde in the dependency graph
+        run: |
+          set -eu
+          deps="$(cargo tree --locked --no-default-features -e normal --prefix none --format '{p}' | awk '{print $1}' | sort -u | grep -vxE 'mediaprobe|serde|serde_core|serde_derive|proc-macro2|quote|syn|unicode-ident' || true)"
+          if [ -n "$deps" ]; then
+            echo "the parser-free build pulls in more than serde:" >&2
+            echo "$deps" >&2
+            exit 1
+          fi
+      - name: Tests
+        run: cargo nextest run --locked --no-default-features --no-fail-fast
+      - name: Doctests
+        run: cargo test --doc --locked --no-default-features --no-fail-fast
 
   msrv:
     name: msrv
@@ -205,16 +284,91 @@ jobs:
       - name: The crates.io archive builds
         run: cargo package --locked -p mediaprobe
 
+  # The fixture corpus's configuration, which needs no fixtures: the
+  # expectations and the ledger render from the recipes unchanged, every
+  # profile resolves, and the tooling's own tests pass. The corpus itself is
+  # generated and published by test-corpus-publish.yml, never committed.
+  corpus-config:
+    name: corpus-config
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: clippy, rustfmt
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@0.9.143
+      - name: Expectations and ledger match the recipes
+        run: |
+          set -eu
+          cargo xtask test-corpus expectations --check
+          cargo xtask test-corpus ledger --check
+          cargo xtask test-corpus verify
+      - name: Tooling format and lints
+        run: |
+          set -eu
+          cargo fmt --manifest-path xtask/Cargo.toml --all --check
+          cargo clippy --locked --manifest-path xtask/Cargo.toml --all-targets -- -D warnings
+      - name: Tooling tests
+        run: cargo nextest run --locked --manifest-path xtask/Cargo.toml --no-fail-fast
+
+  # The fuzz harness on stable: its input builders and structure mutators
+  # are tested, every target body runs over built inputs, and every recorded
+  # regression replays through the parser (and fails while its finding is
+  # open). The fuzzing itself runs in assurance.yml, fuzz-extended.yml,
+  # release-fuzz.yml and the ClusterFuzzLite workflows.
+  fuzz-harness:
+    name: fuzz-harness
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: clippy, rustfmt
+      - uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
+        with:
+          tool: cargo-nextest@0.9.143
+      - name: Format and lints
+        run: |
+          set -eu
+          cargo fmt --manifest-path fuzz/Cargo.toml --all --check
+          cargo clippy --locked --manifest-path fuzz/Cargo.toml --all-targets -- -D warnings
+      - name: Tests
+        run: cargo nextest run --locked --manifest-path fuzz/Cargo.toml --no-fail-fast
+
   ci-complete:
     name: ci-complete
     if: always()
-    needs: [hygiene, fmt, clippy, docs, test, msrv, package]
+    needs: [corpus, hygiene, fmt, clippy, docs, test, no-default-features, msrv, package, corpus-config, fuzz-harness]
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      # Every required lane must have succeeded: a skipped lane is as much a
-      # gap as a failed one.
+      # Every lane must have succeeded. The one exception: while no fixture
+      # corpus is published, the lanes that need it are skipped.
       - name: Require every lane to have succeeded
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 -c 'import json, os; assert all(job["result"] == "success" for job in json.loads(os.environ["RESULTS"]).values()), os.environ["RESULTS"]'
+          CORPUS_LANES: clippy test
+        run: |
+          set -eu
+          failed="$(printf '%s' "$RESULTS" | jq -r --arg lanes "$CORPUS_LANES" '
+            (.corpus.outputs.published == "false") as $absent
+            | ($lanes | split(" ")) as $corpus
+            | to_entries[]
+            | select(.value.result != "success"
+                and ((.value.result == "skipped" and $absent and (.key as $k | $corpus | index($k))) | not))
+            | "\(.key): \(.value.result)"')"
+          if [ -n "$failed" ]; then
+            echo "lanes that did not succeed:" >&2
+            echo "$failed" >&2
+            exit 1
+          fi

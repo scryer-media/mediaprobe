@@ -1,0 +1,8303 @@
+{
+  "files": [
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_001.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_002.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_003.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_004.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_005.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_006.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_007.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_008.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_009.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_010.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_011.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_012.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_013.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_014.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_015.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_016.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_017.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_018.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_019.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_020.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_021.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_022.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_023.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_024.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_025.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_026.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_027.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_028.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_029.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_030.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_031.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_032.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_033.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_034.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_035.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_036.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_037.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_038.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_039.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_040.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_041.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_042.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/matrix_mkv_043.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_001.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_002.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_003.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_004.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_005.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_006.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_007.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_008.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_009.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_010.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_011.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/matrix_webm_012.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_001.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_002.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_003.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_004.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_005.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_006.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_007.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_008.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_009.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_010.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_011.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_012.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_013.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_014.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_015.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_016.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_017.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_018.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_019.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_020.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_021.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_022.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_023.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_024.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_025.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_026.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_027.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_028.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_029.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_030.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_031.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_032.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_033.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_034.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_035.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_036.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_037.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_038.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_039.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_040.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_041.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_042.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_043.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_044.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_045.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_046.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_047.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_048.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_049.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_050.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_051.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_052.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_053.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_054.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_055.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_056.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_057.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/matrix_mp4_058.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4v",
+      "path": "tests/media/matrix_mp4_059.m4v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/matrix_mp4_060.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_001.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_002.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_003.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_004.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_005.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_006.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_007.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_008.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_009.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_010.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_011.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_012.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_013.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_014.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_015.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_016.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_017.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_018.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_019.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_020.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_021.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_022.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_023.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_024.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_025.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_026.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_027.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_028.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_029.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_030.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_031.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_032.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_033.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_034.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_035.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_036.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_037.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_038.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_039.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/matrix_avi_040.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_001.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_002.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_003.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_004.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_005.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_006.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_007.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_008.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_009.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_010.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_011.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_012.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_013.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_014.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_015.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_016.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_017.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_018.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_019.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_020.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_021.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_022.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_023.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_024.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_025.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_026.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_027.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_028.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_029.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_030.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_031.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_032.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_033.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_034.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_035.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_036.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_037.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_038.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_039.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_040.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_041.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_042.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_043.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/matrix_ts_044.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/matrix_ts_045.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_wmav1.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_wmav2.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_pcm_s24le.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_mp3_mono.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_pcm_u8_mono.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_pcm_s16le_stereo.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_pcm_s32le_stereo.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_pcm_f32le_stereo.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_pcm_s24le_surround.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_aac_surround.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_ac3_surround.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv1_dual_wma.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/wmv_wmv2_video_only.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_vorbis.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_opus.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_opus_mono.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_opus_stereo.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_opus_surround.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_dual_vorbis_opus.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_dual_opus.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_dual_vorbis.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_vorbis_alt.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/ogv_theora_video_only.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_mp3.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_h264_aac.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_pcm_s16le.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_h264_mp3.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_pcm_u8.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_adpcm_swf.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_nellymoser.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_aac_mono.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_h264_pcm_alaw.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_pcm_mulaw.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_speex.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv_flv1_video_only.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/avi_idx1_dense_mpeg4.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/simd_dense_h264_aac.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/simd_dense_mpeg2_mp2.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/simd_dense_h264_ac3.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/simd_dense_h264_dts.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/simd_dense_vp9_opus.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/simd_dense_h264_aac.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/simd_dense_h264_aac_192.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/simd_dense_h264_aac_204.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "bin",
+      "path": "tests/media/simd_scan_dense.bin",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "matrix",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/h264_aac.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/h264_aac.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/h264_aac.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/mpeg4_mp3.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dual_audio_subs.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/h264_8k_aac.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/av1_aac.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/av1_flac.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/av1_sequence_pq.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/av1_sequence_pq.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hevc_sequence_pq.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hevc_sequence_pq.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/chapters_nero.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/chapters_quicktime.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hevc_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hevc_hlg.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "supplemental",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hevc_hdr10plus.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hevc_hdr10plus.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dv_profile5.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dv_profile7.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dv_profile7.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dv_profile8.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dv_profile8.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/ps_mpeg1_mp2.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/ps_mpeg2_mp2.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogm",
+      "path": "tests/media/ogm_audio_only.ogm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogm",
+      "path": "tests/media/ogm_video_audio_text.ogm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "imported",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/large/mp4_moov_over_budget.mp4",
+      "profile": "large",
+      "size": null,
+      "source": {
+        "generator": "large",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/large/mp4_sample_table_4m.mp4",
+      "profile": "large",
+      "size": null,
+      "source": {
+        "generator": "large",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/large/mkv_live_interleaved.mkv",
+      "profile": "large",
+      "size": null,
+      "source": {
+        "generator": "large",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/large/ts_interleaved_long.ts",
+      "profile": "large",
+      "size": null,
+      "source": {
+        "generator": "large",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_hdr10.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_pq_no_static.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_hlg.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_hdr10plus.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_pq_no_static.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_hlg.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_hdr10plus.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/hdr/hevc_hdr10.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/hdr/hevc_pq_no_static.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/hdr/hevc_hlg.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/hdr/hevc_hdr10plus.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_hdr10.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_pq_no_static.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_hlg.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_hdr10plus.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/hevc_hdr10.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/hevc_pq_no_static.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/hevc_hlg.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/hevc_hdr10plus.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/hdr/hevc_hdr10.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/hdr/hevc_hlg.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/hdr/hevc_hdr10plus.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_only.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_only.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_only.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_static.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_static.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/hevc_hdr10plus_sei_static.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/av1_hdr10.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/av1_pq_no_static.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/av1_hlg.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/av1_hdr10plus.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/av1_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/av1_pq_no_static.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/av1_hlg.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/av1_hdr10plus.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/av1_hdr10.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/av1_pq_no_static.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/av1_hlg.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/av1_hdr10plus.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/av1_hdr10.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/av1_pq_no_static.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/hdr/av1_hlg.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/vp9_hdr10.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/vp9_pq_no_static.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/hdr/vp9_hlg.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/vp9_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/vp9_pq_no_static.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/vp9_hlg.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/vp9_hdr10.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/vp9_pq_no_static.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/vp9_hlg.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/h264_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/h264_hlg.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/h264_hdr10.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/h264_hlg.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/h264_hdr10.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/h264_hlg.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_pq_container_bt709.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/hevc_pq_container_bt709.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/hdr/hevc_pq_container_bt709.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/av1_pq_container_bt709.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/av1_pq_container_bt709.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/h264_pq_container_bt709.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/hdr/h264_pq_container_bt709.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/hdr/hevc_sdr_container_pq.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p5_hvc1_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p5_hvc1_dvcC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p5_hvc1_dvcC.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p5_dvh1_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p5_dvhe_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p7_dual_layer_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p7_dual_layer_dvcC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p7_dual_layer_dvcC.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p7_single_layer_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_hvc1_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p81_hvc1_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p81_hvc1_dvvC.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/dovi/p81_hvc1_dvvC.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_dvh1_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_hvc1_dvcC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p82_sdr_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p82_sdr_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p84_hlg_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p84_hlg_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p84_hlg_dvvC.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p9_avc1_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p9_avc1_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p9_dvav_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p9_dva1_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p100_av01_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p101_av01_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p101_av01_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p101_dav1_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p104_av01_dvvC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p104_av01_dvvC.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p20_hvc1_dvwC.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_fragmented.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/rpu_only_no_config.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/rpu_only_no_config.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/rpu_only_no_config.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_rpu.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p81_rpu.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p81_rpu.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p81_hdr10plus_hdr10.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/p81_hdr10plus_hdr10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p81_hdr10plus_hdr10.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/dovi/p101_av1_hdr10plus.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_baseline.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_main.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_high.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_high10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_high422.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_high444.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_high444_10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/h264_level41.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/h264_intra_cavlc.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/h264_avc3.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main12.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main422_10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main444.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_main444_10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/hevc_gray.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/hevc_hev1.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/av1_main8.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/av1_main10.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/av1.ivf.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp9_profile0.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp9_profile1.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp9_profile2.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp9_profile3.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp9.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/vp9.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/vp9.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/codec/vp8.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/vp8.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/vp8.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg4_simple.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg4_asp_bframes_qpel.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg4_divx_tag.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg4_packed_bitstream.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/mpeg4_in_mp4.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/mpeg4_in_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "3gp",
+      "path": "tests/media/codec/mpeg4_in_3gp.3gp",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/msmpeg4v2.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/msmpeg4v3.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/codec/wmv1.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/codec/wmv2.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/codec/msmpeg4v3_in_asf.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/codec/h264_in_asf.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/h264_in_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/hevc_in_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/codec/flv1.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "3gp",
+      "path": "tests/media/codec/h263_3gp.3gp",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/h263_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mjpeg_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/mjpeg_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/mjpeg_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/png_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/png_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/prores_proxy.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/prores_422.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/prores_4444.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/prores_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/ffv1_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/ffv1_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/huffyuv_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/utvideo_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/rawvideo_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/v210_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/qtrle_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/svq1_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/cinepak_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/cinepak_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/msvideo1_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/jpeg2000_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/jpeg2000_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/dnxhr_lb_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/dirac_vc2_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/codec/theora_ogg.ogv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/theora_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "rm",
+      "path": "tests/media/rm/rv10_ac3.rm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "rm",
+      "path": "tests/media/rm/rv20_real144.rm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "rmvb",
+      "path": "tests/media/rm/rv20_ac3.rmvb",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/ntsc_411.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/pal_420.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/dvcpro50_ntsc_422.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/dvcprohd_1080i.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/dvcprohd_1080i_50.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "dv",
+      "path": "tests/media/dv/dvcprohd_720p.dv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/dv/dv_in_avi.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/dv/dv_in_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dv/dv_in_mkv.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/mpeg2_main.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/codec/mpeg2_main.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/mpeg2_main.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/mpeg2_main.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg2_main.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/mpeg2_422.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/codec/mpeg2_main.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/mpeg1.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/codec/mpeg1.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "h264",
+      "path": "tests/media/elementary/h264.h264",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avc",
+      "path": "tests/media/elementary/h264.avc",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "h264",
+      "path": "tests/media/elementary/h264_high10.h264",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2v",
+      "path": "tests/media/elementary/mpeg2.m2v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2v",
+      "path": "tests/media/elementary/mpeg1.m2v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "h265",
+      "path": "tests/media/elementary/hevc.h265",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "hevc",
+      "path": "tests/media/elementary/hevc_hdr10.hevc",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/ps/mpeg2_ac3.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/ps/mpeg2_lpcm.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/ps/mpeg2_dvd_mux.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/ps/mpeg2_mp2.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpeg",
+      "path": "tests/media/ps/mpeg1_mp2.mpeg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/ps/svcd.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/ps/mpeg2_dts.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/aac_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/mp3_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/mp2_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/ac3_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/eac3_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/truehd_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/mlp_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/dts_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/flac_8ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/opus_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/vorbis_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/alac_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_s16le_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_s24le_6ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_s32le_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_f32le_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_f64le_1ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/pcm_s16be_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/wavpack_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/tta_2ch.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/aac_8ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/mp3_2ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/mp2_2ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/ac3_6ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/eac3_6ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/alac_2ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/flac_6ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/opus_2ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/dts_6ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/truehd_6ch.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_s16be_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_s16le_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_s24be_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_s32be_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_f32be_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_f64be_1ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_s8_1ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_alaw_1ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/pcm_mulaw_1ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/adpcm_ima_qt_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/alac_2ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/audio/aac_1ch.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/pcm_s16le_2ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/pcm_u8_1ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/pcm_s24le_6ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/adpcm_ms_2ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/pcm_alaw_1ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/ac3_6ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/dts_6ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/mp2_2ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/mp3_1ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/aac_2ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/audio/wmav2_2ch.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/aac_6ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/mp2_2ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/mp3_2ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/ac3_6ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/eac3_6ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/dts_6ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/truehd_6ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/opus_2ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/s302m_2ch.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/audio/wmav1_2ch.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/audio/wmav2_2ch.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/audio/mp3_2ch.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/audio/pcm_s16le_2ch.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/audio/ac3_6ch.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/audio/aac_2ch.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/audio/mp3_2ch.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/audio/pcm_s16le_2ch.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/audio/adpcm_swf_1ch.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/audio/nellymoser_1ch.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/audio/opus_2ch.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/audio/vorbis_2ch.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_mono.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_stereo.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_2_1.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_quad.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_5_0.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_5_1.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_6_1.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/layout_flac_7_1.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/audio/pcm_bluray.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/audio/aac_latm.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogg",
+      "path": "tests/media/audio/vorbis_2ch.ogg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogg",
+      "path": "tests/media/audio/opus_6ch.ogg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogg",
+      "path": "tests/media/audio/flac_2ch.ogg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/srt.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/ass.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/ssa.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/webvtt.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/text.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/subs/webvtt.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/subs/mov_text.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/subs/mov_text.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/subs/ttml.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "3gp",
+      "path": "tests/media/subs/mov_text.3gp",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subs/three_tracks_dispositions.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/subs/mov_text_forced_sdh.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/disposition/audio_flags.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/disposition/audio_kind.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/disposition/cover_art.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/disposition/cover_art.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/disposition/two_video_second_default.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/iso639_2_jpn.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/iso639_2b_fre.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/bcp47_pt_br.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/bcp47_zh_hant.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/und.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/lang/missing.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/lang/iso639_2_deu.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/lang/bcp47_pt_br.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/lang/und.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/lang/iso639_2_spa.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/lang/iso639_2_swe.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/lang/iso639_2_kor.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/lang/iso639_2_nld.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogg",
+      "path": "tests/media/lang/iso639_2_ita.ogg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/multiaudio/4_tracks.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/multiaudio/3_tracks.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/multiaudio/3_tracks.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/multiaudio/2_tracks.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/multiaudio/2_tracks.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/chapters/three.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/chapters/three.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/chapters/three.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/chapters/three.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/chapters/three.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogg",
+      "path": "tests/media/chapters/three.ogg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/chapters/hundred.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/attach/font_and_text.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/captions/h264_a53.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/captions/h264_a53.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/captions/h264_a53.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/captions/hevc_a53.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/captions/hevc_a53.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/captions/hevc_a53.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/captions/mpeg2_a53.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/captions/mpeg2_a53.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/captions/mpeg2_a53.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2v",
+      "path": "tests/media/captions/mpeg2_a53.m2v",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/dar_16x9_pasp.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/dar_16x9_display.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/geometry/dar_16x9_mov.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/sar_4x3_vui.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/geometry/sar_4x3_vui.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/geometry/sar_4x3_vui.avi",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/geometry/mpeg2_dar_16x9.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/rotate_90.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/rotate_180.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/rotate_270.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/geometry/rotate_90.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/rotate_90.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/h264_tff.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/geometry/h264_bff.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/h264_tff.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/mpeg2_tff.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/geometry/mpeg2_bff.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mpg",
+      "path": "tests/media/geometry/mpeg2_bff.mpg",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/geometry/prores_tff.mov",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/hevc_progressive.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_sbs.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_tab.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_checkerboard_lr.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_row_lr.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_anaglyph.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/stereo_sbs.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/stereo_tab.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/stereo_frame_packing_sei.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/mono_2d.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/vfr.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/geometry/vfr.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/geometry/vfr.wmv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "webm",
+      "path": "tests/media/geometry/vfr.webm",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/ntsc_23976.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/ntsc_2997.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/hfr_120.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/odd_65x33.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/tiny_16x16.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/wide_1024x32.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/tall_32x1024.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/geometry/cropped_sps_1080.mkv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/program/two_programs.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/program/service_metadata.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/program/audio_only_second_program.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/frag_keyframe.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/cmaf.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/global_sidx.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/frag_every_frame.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/dash_style.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/fmp4/hevc_hdr10_frag.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ismv",
+      "path": "tests/media/fmp4/smooth.ismv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv/enhanced_hevc.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv/enhanced_av1.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "flv",
+      "path": "tests/media/flv/enhanced_vp9.flv",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/encrypted/cenc_h264_aac.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/encrypted/cenc_hevc_frag.mp4",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/encrypted/scrambled.ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/encrypted/scrambled.m2ts",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "vob",
+      "path": "tests/media/encrypted/scrambled_pes.vob",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "coverage",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/dvd_ntsc_iso9660.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/dvd_ntsc_udf102.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/dvd_css_flagged.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/dvd_pal_wide_two_titles.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/bluray_h264_two_clips.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/bluray_aacs_flagged.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/uhd_hdr10.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/uhd_hdr10plus.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/uhd_dolby_vision_declared.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "iso",
+      "path": "tests/media/disc/uhd_hdr10_declared_over_sdr.iso",
+      "profile": "unit",
+      "size": null,
+      "source": {
+        "generator": "disc",
+        "kind": "generated"
+      }
+    },
+    {
+      "blake3": "80bcda25c94b69eae8cbd4fd17f5cedecf5c1c0cbcd5a618e5135b596ee7d5e3",
+      "format": "mp4",
+      "path": "tests/media/large/mp4_co64_over_4g.mp4",
+      "profile": "large",
+      "size": 4296050916,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/simd_dense_h264_aac.mp4"
+      }
+    },
+    {
+      "blake3": "f6c5061944f03d4fdcdb3569c6a40be2d6a6aaa5eacd54a6d886f65504beedc7",
+      "format": "mp4",
+      "path": "tests/media/large/mp4_co64_100m.mp4",
+      "profile": "large",
+      "size": 104892644,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/simd_dense_h264_aac.mp4"
+      }
+    },
+    {
+      "blake3": "e127d52d0a2847bcf30dce844a5bb9285d6226a3e1000104dbbccfdc861c7c43",
+      "format": "mp4",
+      "path": "tests/media/large/mp4_moov_first_300m.mp4",
+      "profile": "large",
+      "size": 314607844,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/simd_dense_h264_aac.mp4"
+      }
+    },
+    {
+      "blake3": "320482ff378df7b897661e1f481c86f9288e6cbe8b480f9fb4a065b5d171d0fe",
+      "format": "mkv",
+      "path": "tests/media/large/mkv_seekhead_cues_tags_over_4g.mkv",
+      "profile": "large",
+      "size": 4296052667,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/h264_aac.mkv"
+      }
+    },
+    {
+      "blake3": "a5f93c212892a980ec2ae7849c675aa94d77bd5978205570a87fcd092a76ed2b",
+      "format": "mkv",
+      "path": "tests/media/large/mkv_seekhead_cues_tags_100m.mkv",
+      "profile": "large",
+      "size": 104894395,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/h264_aac.mkv"
+      }
+    },
+    {
+      "blake3": "7106684e85496eda26e5e9e59ffb514578c3a451d37862e4f0ead19fc51f8da0",
+      "format": "mkv",
+      "path": "tests/media/large/mkv_no_seekhead_no_cues_300m.mkv",
+      "profile": "large",
+      "size": 314706010,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/h264_aac.mkv"
+      }
+    },
+    {
+      "blake3": "f9f4e16b3073c0369e777171f7338c050aa5ff6de8b7d5d115e8d682ca957b26",
+      "format": "ts",
+      "path": "tests/media/large/ts_pts_pcr_wrap_300m.ts",
+      "profile": "large",
+      "size": 315024268,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/simd_dense_h264_aac.ts"
+      }
+    },
+    {
+      "blake3": "8104d84df2d806dd4d3b82b23ec6851f0df8319ddbceea6bc9856cd5caa502da",
+      "format": "avi",
+      "path": "tests/media/large/avi_idx1_over_1g.avi",
+      "profile": "large",
+      "size": 1075620214,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/matrix_avi_002.avi"
+      }
+    },
+    {
+      "blake3": "89c44fb434388438d991be15de4123ea3e30d783f59c093838bb0d6aa7250f03",
+      "format": "avi",
+      "path": "tests/media/large/avi_opendml_over_2g.avi",
+      "profile": "large",
+      "size": 2214146150,
+      "source": {
+        "generator": "synthesized",
+        "kind": "synthesized",
+        "seed": "tests/media/matrix_avi_002.avi"
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/stubs/dv_profile5.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "The original 315-byte hand-authored Matroska metadata stub: a 3840x2160 HEVC track declared through CodecPrivate and a Dolby Vision BlockAdditionMapping with no decodable frames. FFmpeg writes those elements only around a real encoded stream. The configuration-record path is covered by dv_profile5.mkv (FFmpeg plus dvcC insertion, then an FFmpeg remux); exact stub bytes belong in the crate's own in-code builders, as the original suite's sparse_mkv support did."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/stubs/dv_profile7.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "Hand-authored metadata stub, as stubs/dv_profile5.mkv; covered by dv_profile7.mkv."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/stubs/dv_profile8.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "Hand-authored metadata stub, as stubs/dv_profile5.mkv; covered by dv_profile8.mkv."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/stubs/hevc_hdr10plus.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "The original 283-byte hand-authored stub: a 3840x2160 HEVC track whose only frame is an SEI carrying ITU-T T.35 HDR10+ metadata. Covered by hevc_hdr10plus.mkv, a real libx265 encode with dhdr10-info metadata."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/stubs/hevc_hdr10plus.mp4",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "The original 691-byte hand-authored MP4 stub of the same shape; covered by hevc_hdr10plus.mp4."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/vvc.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "No VVC (H.266) encoder: the FFmpeg 8.1.1 build used to author the corpus does not link libvvenc, and no other encoder is allowed."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4a",
+      "path": "tests/media/audio/he_aac_v1.m4a",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "HE-AAC (SBR) needs libfdk_aac, which the FFmpeg 8.1.1 build used to author the corpus does not link; the native AAC encoder writes LC only."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4a",
+      "path": "tests/media/audio/he_aac_v2.m4a",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "HE-AACv2 (SBR + PS): as audio/he_aac_v1.m4a."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4a",
+      "path": "tests/media/audio/aac_main.m4a",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg 8.1.1's native AAC encoder refuses the Main profile (\"Profile not supported\"); libfdk_aac is not linked."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m4a",
+      "path": "tests/media/audio/aac_ltp.m4a",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg 8.1.1's native AAC encoder refuses the LTP profile (\"Profile not supported\"); libfdk_aac is not linked."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "3gp",
+      "path": "tests/media/audio/amr_nb.3gp",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "AMR-NB needs libopencore-amrnb, which the FFmpeg 8.1.1 build used to author the corpus does not link."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "3gp",
+      "path": "tests/media/audio/amr_wb.3gp",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "AMR-WB needs libvo-amrwbenc, which the FFmpeg 8.1.1 build used to author the corpus does not link."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/audio/eac3_joc_atmos.mp4",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "No encoder writes Dolby Atmos (E-AC-3 JOC); FFmpeg's E-AC-3 encoder writes no object audio, and the JOC extension cannot be authored honestly without a reference bitstream."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/truehd_atmos.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's TrueHD encoder writes no Atmos substream; as audio/eac3_joc_atmos.mp4."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/audio/dts_hd_ma.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's DTS encoder writes the core only; DTS-HD MA, HRA, ES, 96/24, DTS:X and DTS Express extensions have no encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wma",
+      "path": "tests/media/audio/wma_pro.wma",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg has a WMA Pro decoder but no encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wma",
+      "path": "tests/media/audio/wma_lossless.wma",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg has a WMA Lossless decoder but no encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "wmv",
+      "path": "tests/media/codec/vc1.wmv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg has VC-1 / WMV3 decoders but no encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/svq3.mov",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg has a Sorenson Video 3 decoder but no encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/subtitle/dvdsub.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's dvdsub encoder needs bitmap subtitle input, and nothing allowed here produces bitmap subtitles (FFmpeg cannot render text subtitles to bitmaps)."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/subtitle/pgs.m2ts",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg has no PGS (HDMV presentation graphics) encoder."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/subtitle/dvbsub.ts",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "As subtitle/dvdsub.mkv: the DVB subtitle encoder needs bitmap input."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/codec/av1_high_444.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "AV1 High (4:4:4) and Professional profiles: SVT-AV1, the only AV1 encoder linked here, writes Main profile only."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/dovi/dvwc_profile20.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "Matroska has no dvwC block-addition mapping that FFmpeg writes; the dvwC path is covered in MP4."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mkv",
+      "path": "tests/media/encrypted/matroska_content_encryption.mkv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's Matroska muxer writes no ContentEncryption elements."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mp4",
+      "path": "tests/media/codec/hevc_main_still_picture.mp4",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "Asked for -profile:v mainstillpicture (or msp) on a single 4:2:0 8-bit frame, the libx265 in the FFmpeg 8.1.1 build used to author the corpus writes general_profile_idc 4 (Format Range Extensions), not 3."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/hdr/av1_hdr10.ts",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg 8.1.1's TS muxer has no AV1 mapping: it writes the stream as private data that no demuxer reads as AV1. Covers every AV1-in-TS shape (av1_pq_no_static.ts, av1_hlg.ts, av1_hdr10plus.ts)."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ts",
+      "path": "tests/media/dovi/p101_av01_dvvC.ts",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "AV1 in TS, as hdr/av1_hdr10.ts."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "mov",
+      "path": "tests/media/codec/vp8.mov",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's MOV muxer refuses VP8."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "avi",
+      "path": "tests/media/codec/mpeg4_asp_gmc.avi",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's MPEG-4 encoder has no global motion compensation."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/codec/dirac_vc2.ogv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's Ogg muxer refuses Dirac / VC-2."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "ogv",
+      "path": "tests/media/lang/iso639_2_ita.ogv",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "Ogg video needs Theora or Dirac; covered audio-only by lang/iso639_2_ita.ogg."
+      }
+    },
+    {
+      "blake3": null,
+      "format": "m2ts",
+      "path": "tests/media/program/two_programs.m2ts",
+      "profile": "none",
+      "size": null,
+      "source": {
+        "kind": "not_reproducible",
+        "reason": "FFmpeg's m2ts mode allows one program (as Blu-ray does); two programs are covered in 188-byte TS by program/two_programs.ts."
+      }
+    }
+  ],
+  "generators": {
+    "builders": {
+      "byte_reproducible": false,
+      "notes": "OGM (DirectShow stream headers inside Ogg), which no FFmpeg muxer writes. The Vorbis headers inside come from an FFmpeg-encoded Ogg Vorbis stream.",
+      "path": "xtask/src/recipes/builders.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "coverage": {
+      "byte_reproducible": false,
+      "notes": "One fixture per classifying branch of the parser: HDR10, PQ without static metadata, HLG and HDR10+ in HEVC, AV1, VP9 and H.264; Dolby Vision profiles 5, 7, 8.1, 8.2, 8.4, 9 and 10 signalled through dvcC/dvvC/dvwC, Matroska BlockAdditionMapping, the TS DOVI descriptor and RPU NAL units; codec profiles, bit depths and chroma formats; audio codecs, layouts and profiles; subtitle formats; dispositions; language tags; chapters, attachments, cover art and captions; geometry (aspect ratios, rotation, interlacing, stereo 3D, variable frame rate); multi-program TS; and encrypted or scrambled payloads. Signals no encoder writes are authored in Rust after the encode: SEI messages, Dolby Vision RPU NAL units and configuration boxes, AV1 ITU-T T.35 metadata OBUs, A/53 caption user data and scrambling bits (xtask/src/recipes/inject.rs).",
+      "path": "xtask/src/recipes/coverage.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "disc": {
+      "byte_reproducible": false,
+      "notes": "DVD-Video ISO 9660 images (VIDEO_TS IFO navigation around an FFmpeg MPEG-2 program stream) and Blu-ray / UHD Blu-ray UDF 2.50 / 2.60 images (BDMV index, MovieObject, MPLS playlist and CLPI clip information around FFmpeg M2TS clips), written by xtask/src/recipes/disc.rs.",
+      "path": "xtask/src/recipes/disc.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "dolby_vision": {
+      "byte_reproducible": false,
+      "notes": "HEVC Main 10 PQ from libx265 with a dvcC box inserted into the hvc1 sample entry by Rust after FFmpeg; the Matroska variants are FFmpeg remuxes of those MP4s, which carry the record into BlockAdditionMapping. There is no RPU in the bitstream: the fixtures test the configuration record, not RPU parsing.",
+      "path": "xtask/src/recipes/supplemental.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "imported": {
+      "byte_reproducible": false,
+      "notes": "Files read byte for byte from the public repository the parser was extracted from, at a pinned commit, and checked against a pinned size and BLAKE3. The parser's own tests assert facts of these exact bytes, which a regenerated file does not reproduce. Not generated, so not byte-reproducible from a recipe.",
+      "path": "xtask/src/recipes/imported.rs",
+      "toolchains": []
+    },
+    "large": {
+      "byte_reproducible": false,
+      "notes": "Budget fixtures: an MP4 whose moov is larger than the 64 MiB read budget, an MP4 with a four-million-entry sample table, a Matroska live stream with no cues and unknown-size clusters, and a long interleaved MPEG-TS.",
+      "path": "xtask/src/recipes/large.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "matrix": {
+      "byte_reproducible": false,
+      "notes": "testsrc2 video and silent anullsrc audio across MKV, WebM, MP4/M4V/MOV, AVI, TS/M2TS, ASF, Ogg and FLV. Two TS fixtures re-frame another fixture's packets into 192- and 204-byte packets, and one ASF fixture has its PCM format rewritten to WAVE_FORMAT_EXTENSIBLE, both in Rust after FFmpeg. simd_scan_dense.bin is written by Rust: it is scanner input, not media.",
+      "path": "xtask/src/recipes/matrix.rs",
+      "toolchains": [
+        "ffmpeg",
+        "speexenc"
+      ]
+    },
+    "supplemental": {
+      "byte_reproducible": false,
+      "notes": "AV1, HEVC HDR10/HLG/HDR10+ (x265 SEI and dhdr10-info), PQ sequence headers, Nero and QuickTime chapters, MPEG-1/2 program streams and an 8K H.264 stream.",
+      "path": "xtask/src/recipes/supplemental.rs",
+      "toolchains": [
+        "ffmpeg"
+      ]
+    },
+    "synthesized": {
+      "byte_reproducible": false,
+      "notes": "Files past 1, 2 and 4 GiB written by Rust from an imported seed and format padding (an MP4 mdat, an EBML Void, null TS packets, an AVI JUNK chunk), sparse where the format allows. Never published: hydrate writes them from the seed and checks the size and BLAKE3 the recipe pins, so the bytes are reproducible.",
+      "path": "xtask/src/recipes/synth.rs",
+      "toolchains": []
+    }
+  },
+  "schema_version": 1,
+  "toolchain": "test-corpus/toolchain.json"
+}

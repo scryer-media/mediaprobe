@@ -1,0 +1,4 @@
+[alias]
+# The repository's tooling lives in its own workspace under xtask/, so the
+# published crate never depends on it.
+xtask = "run --locked --quiet --manifest-path xtask/Cargo.toml --"

@@ -55,9 +55,11 @@ Each step here exists because skipping it has already failed a release.
 
 ## 5. Local gates
 
-Run what CI runs, with `--locked`, before pushing:
+Run what CI runs, with `--locked`, before pushing. The default feature set's
+tests embed fixtures, so hydrate the unit corpus first:
 
 ```sh
+cargo xtask test-corpus hydrate
 cargo fmt --all --check
 cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
 cargo clippy --locked --all-targets -- -D warnings
@@ -65,9 +67,29 @@ RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps --all-features
 cargo nextest run --locked --workspace --all-features --no-fail-fast
 cargo test --doc --locked --workspace --all-features --no-fail-fast
 cargo nextest run --locked --no-fail-fast
+cargo build --locked --no-default-features
+cargo clippy --locked --no-default-features --all-targets -- -D warnings
+cargo nextest run --locked --no-default-features --no-fail-fast
+cargo nextest run --locked --features fuzzing --test unsafe_scanners
+cargo xtask test-corpus expectations --check
+cargo xtask test-corpus ledger --check
 cargo semver-checks -p mediaprobe
 cargo package --locked -p mediaprobe
 ```
+
+- A change under `xtask/` or `fuzz/` also runs that crate's
+  `cargo fmt --manifest-path <crate>/Cargo.toml --all --check`,
+  `cargo clippy --locked --manifest-path <crate>/Cargo.toml --all-targets -- -D warnings`
+  and `cargo nextest run --locked --manifest-path <crate>/Cargo.toml`.
+- A change to the unsafe scanners runs the Miri command in
+  `docs/unsafe-validation.md`.
+- A changed recipe re-renders `tests/media-fixtures.toml` and
+  `test-corpus/sources.json` (`cargo xtask test-corpus expectations` and
+  `ledger`); a new expectation the parser misses goes in
+  `tests/media-known-gaps.toml` only with a reason in the PR body.
+- The `assurance.yml` lanes (Miri, sanitizers, Valgrind, fuzzing, large
+  fixtures) run on the PR; they are not repeated locally unless the change
+  touches what they cover.
 
 - Keep the hooks on: `git config core.hooksPath .githooks`.
 

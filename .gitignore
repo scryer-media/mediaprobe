@@ -33,3 +33,10 @@
 **/fuzz/artifacts/
 **/fuzz/corpus/
 **/fuzz/coverage/
+
+# The fixture corpus, hydrated by `cargo xtask test-corpus hydrate`. Never
+# committed: it is published content-addressed; see docs/test-corpus.md.
+/tests/media/
+
+# The xtask crate builds into its own directory.
+/xtask/target/

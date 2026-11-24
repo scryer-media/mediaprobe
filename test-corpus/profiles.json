@@ -1,0 +1,35 @@
+{
+  "profiles": {
+    "all": {
+      "description": "The whole corpus.",
+      "include": [
+        "tests/media/**"
+      ]
+    },
+    "fuzz-seeds": {
+      "description": "What fuzz/scripts and ClusterFuzzLite seed the fuzz corpora from: every small fixture. The large budget fixtures are left out because libFuzzer caps input length far below them.",
+      "exclude": [
+        "tests/media/large/**"
+      ],
+      "include": [
+        "tests/media/**"
+      ]
+    },
+    "large": {
+      "description": "The budget fixtures: moov beyond the read budget, a four-million-entry sample table, a cue-less live Matroska stream and a long interleaved TS (published, hundreds of MiB each), plus files past 1, 2 and 4 GiB that hydrate synthesises from small seeds, sparse where the format allows. Read by the corpus-large lane.",
+      "include": [
+        "tests/media/large/**"
+      ]
+    },
+    "unit": {
+      "description": "Every small fixture: what the corpus expectations and truncation tests read in the corpus lane.",
+      "exclude": [
+        "tests/media/large/**"
+      ],
+      "include": [
+        "tests/media/**"
+      ]
+    }
+  },
+  "schema_version": 1
+}
