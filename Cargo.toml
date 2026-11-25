@@ -7,7 +7,6 @@ authors = ["NZB Man"]
 license = "Apache-2.0"
 keywords = ["media", "video", "metadata", "container", "codec"]
 categories = ["multimedia", "multimedia::video", "parser-implementations"]
-homepage = "https://github.com/scryer-media/mediaprobe"
 repository = "https://github.com/scryer-media/mediaprobe"
 description = "Container and stream metadata for media files, read in pure Rust with no external tools."
 readme = "README.md"
