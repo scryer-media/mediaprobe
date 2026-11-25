@@ -179,9 +179,10 @@ mod tests {
     #[test]
     fn an_sps_with_an_overlong_exp_golomb_prefix_is_refused() {
         assert!(parse_sps(&SPS_WITH_LONG_ZERO_PREFIX).is_none());
-        // One zero bit fewer is an ordinary, if huge, value.
+        // Seven zero bits fewer in the prefix, and no zero run in the value.
         let mut shorter = SPS_WITH_LONG_ZERO_PREFIX;
         shorter[4] = 0x01;
+        shorter[13..].fill(0xFF);
         let rbsp = scan::h2645_unescape_rbsp(&shorter);
         assert!(!has_terminated_zero_run(&rbsp, 0, EXP_GOLOMB_ZERO_RUN));
     }
