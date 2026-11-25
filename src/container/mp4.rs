@@ -8,11 +8,13 @@ mod boxes;
 mod chapters;
 mod moov;
 mod samples;
+mod tables;
 mod timing;
 use boxes::*;
 use moov::*;
 use samples::*;
 use std::io::{Cursor, Read, Seek, SeekFrom};
+use tables::*;
 
 use core::range::Range;
 
@@ -99,8 +101,12 @@ pub(crate) fn parse_mp4_source(
     let parsed_metadata = parse_mp4_metadata(&prepared.metadata);
     let metadata_by_track = parsed_metadata.tracks;
 
-    let mut cursor = Cursor::new(prepared.metadata.as_slice());
-    let ctx = match mp4parse::read_mp4(&mut cursor) {
+    let parsed = match bound_mp4parse_tables(&mut prepared.metadata) {
+        Ok(()) => mp4parse::read_mp4(&mut Cursor::new(prepared.metadata.as_slice()))
+            .map_err(|error| format!("{error:?}")),
+        Err(table) => Err(table.to_string()),
+    };
+    let ctx = match parsed {
         Ok(ctx) => ctx,
         Err(_) if prepared.budget_exhausted => {
             let mut details = crate::AnalysisDetails::default();
@@ -113,7 +119,7 @@ pub(crate) fn parse_mp4_source(
                 details,
             });
         }
-        Err(error) => return Err(ProbeError::Malformed(format!("mp4 parse: {error:?}"))),
+        Err(error) => return Err(ProbeError::Malformed(format!("mp4 parse: {error}"))),
     };
     let num_chapters = match count_mp4_chapters(&parsed_metadata.chapters, &ctx) {
         0 => None,

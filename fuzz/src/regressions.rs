@@ -36,6 +36,23 @@ pub struct Regression {
 pub const REGRESSIONS: &[Regression] = &[
     Regression {
         open: false,
+        name: "h264_sps_exp_golomb_prefix_overflow",
+        target: Target::Container("h264"),
+        finding: "scuffle-expgolomb 0.1.5 shifts its result once per leading zero bit with \
+                  no limit and then subtracts one (lib.rs:88), so a prefix of 64 zero bits \
+                  followed by 64 zero value bits leaves zero and the subtraction panics on \
+                  overflow. Found by the elementary_h264 fuzz target in an SPS padded with \
+                  zero bytes; minimised to one SPS. Closed: a parameter set with a zero run \
+                  that long is refused before it reaches the dependency.",
+        // Annex B start code, then an SPS whose seq_parameter_set_id has a
+        // 64-bit zero prefix.
+        input: &[
+            0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
+        ],
+    },
+    Regression {
+        open: false,
         name: "hevc_sps_ctb_below_min_tb",
         target: Target::CodecConfig,
         finding: "scuffle-h265 0.2.2 subtracts min_tb_log2_size_y from ctb_log2_size_y \
@@ -52,6 +69,28 @@ pub const REGRESSIONS: &[Regression] = &[
             0x28, 0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03,
             0x00, 0x00, 0x03, 0x00, 0x1E, 0xA0, 0x20, 0x81, 0x05, 0x96, 0x56, 0xD4, 0xA4, 0xC2,
             0xF0, 0x16, 0x80, 0x80, 0x00, 0x00, 0x03, 0x00, 0x80, 0x00, 0x00, 0x0C, 0x04,
+        ],
+    },
+    Regression {
+        open: false,
+        name: "hevc_sps_scaling_list_pred_before_first_matrix",
+        target: Target::CodecConfig,
+        finding: "scuffle-h265 0.2.2 subtracts scaling_list_pred_matrix_id_delta from the \
+                  matrix index unchecked (sps/scaling_list.rs:90) and then indexes its \
+                  default table with the result, so a scaling list predicted from before \
+                  the first matrix panics on overflow, or out of bounds once it wraps. \
+                  Found by the disc_navigation fuzz target; minimised to one SPS whose \
+                  first 8x8 list predicts from one matrix back. Closed: the scaling list \
+                  data is read and checked before the SPS reaches the dependency.",
+        // Selector 24: Matroska V_MPEGH/ISO/HEVC with this CodecPrivate, an
+        // hvcC holding one SPS.
+        input: &[
+            0x18, 0x01, 0x01, 0x60, 0x00, 0x00, 0x00, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
+            0xF0, 0x00, 0xF8, 0xFD, 0xF8, 0xF8, 0x00, 0x00, 0x0F, 0x01, 0x21, 0x00, 0x01, 0x00,
+            0x2E, 0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03,
+            0x00, 0x00, 0x03, 0x00, 0x1E, 0xA0, 0x20, 0x81, 0x05, 0x96, 0x56, 0xD6, 0x4F, 0x55,
+            0x52, 0x55, 0x55, 0x55, 0x45, 0xE0, 0x2D, 0x01, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
+            0x00, 0x03, 0x00, 0x18, 0x08,
         ],
     },
     Regression {

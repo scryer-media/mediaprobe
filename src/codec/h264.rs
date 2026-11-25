@@ -1,140 +1,129 @@
 //! H.264 decoder configuration (avcC): profile, bit depth and dimensions.
 
+mod avcc;
+mod sps;
+#[cfg(test)]
+mod tests;
+
+pub(crate) use avcc::AvcConfig;
+pub(crate) use sps::Sps;
+
 use super::CodecInfo;
 use crate::scan;
 
+/// Parses an H.264 SPS NAL unit that may hold emulation prevention bytes.
+pub(crate) fn parse_sps(nal: &[u8]) -> Option<Sps> {
+    Sps::parse(&scan::h2645_unescape_rbsp(nal))
+}
+
 /// The cropped picture size an SPS declares, or `None` when its fields do
-/// not describe one. The parser's own `width` and `height` do this
-/// arithmetic unchecked, so a crop larger than the picture, or a huge
-/// macroblock count, overflows there.
-pub(crate) fn sps_dimensions(sps: &scuffle_h264::Sps) -> Option<(i32, i32)> {
-    let crop = sps.frame_crop_info.as_ref();
-    let cropped = |units: u64, scale: u64, low: u64, high: u64| {
-        let full = units.checked_add(1)?.checked_mul(16)?.checked_mul(scale)?;
-        let lost = low.checked_add(high)?.checked_mul(2)?;
+/// not describe one: a crop larger than the picture, or a size beyond `i32`.
+///
+/// Crop offsets count in chroma samples horizontally, and in chroma rows of
+/// a frame or of a field vertically, so their unit depends on the chroma
+/// format and on whether the stream codes fields.
+pub(crate) fn sps_dimensions(sps: &Sps) -> Option<(i32, i32)> {
+    let crop = sps.frame_crop.as_ref();
+    let cropped = |units: u32, scale: u64, crop_unit: u64, low: u32, high: u32| {
+        let full = u64::from(units)
+            .checked_add(1)?
+            .checked_mul(16)?
+            .checked_mul(scale)?;
+        let lost = u64::from(low)
+            .checked_add(u64::from(high))?
+            .checked_mul(crop_unit)?;
         i32::try_from(full.checked_sub(lost)?).ok()
     };
-    let field_scale = if sps.mb_adaptive_frame_field_flag.is_none() {
-        1
-    } else {
+    let field_scale = if sps.frame_mbs_only_flag { 1 } else { 2 };
+    // 4:2:0 and 4:2:2 halve the chroma width; only 4:2:0 halves its height.
+    let crop_unit_x = if matches!(sps.chroma_format_idc, 1 | 2) {
         2
+    } else {
+        1
     };
+    let crop_unit_y = if sps.chroma_format_idc == 1 { 2 } else { 1 } * field_scale;
     let width = cropped(
         sps.pic_width_in_mbs_minus1,
         1,
-        crop.map_or(0, |c| c.frame_crop_left_offset),
-        crop.map_or(0, |c| c.frame_crop_right_offset),
+        crop_unit_x,
+        crop.map_or(0, |c| c.left),
+        crop.map_or(0, |c| c.right),
     )?;
     let height = cropped(
         sps.pic_height_in_map_units_minus1,
         field_scale,
-        crop.map_or(0, |c| c.frame_crop_top_offset),
-        crop.map_or(0, |c| c.frame_crop_bottom_offset),
+        crop_unit_y,
+        crop.map_or(0, |c| c.top),
+        crop.map_or(0, |c| c.bottom),
     )?;
     Some((width, height))
+}
+
+/// Whether `codec_private` is an avcC record with at least one SPS that
+/// parses and at least one PPS.
+pub(crate) fn is_valid_h264_avcc(codec_private: &[u8]) -> bool {
+    let Some(config) = AvcConfig::parse(codec_private) else {
+        return false;
+    };
+    if config.configuration_version != 1 || config.sps.is_empty() || config.pps_count == 0 {
+        return false;
+    }
+    config
+        .sps
+        .iter()
+        .any(|sps_bytes| parse_sps(sps_bytes).is_some())
+}
+
+/// A transfer characteristic worth reporting: not 0 (reserved) or 2
+/// (unspecified).
+fn reported_transfer(sps: &Sps) -> Option<u32> {
+    let transfer = u32::from(sps.color.as_ref()?.transfer);
+    (transfer > 0 && transfer != 2).then_some(transfer)
 }
 
 /// Extracts codec profile and bit depth from an H.264 AVCDecoderConfigurationRecord.
 ///
 /// The input bytes are the raw codec-private data stored in the container
-/// (e.g. MKV CodecPrivate or MP4 avcC box contents).
-pub(crate) fn is_valid_h264_avcc(codec_private: &[u8]) -> bool {
-    use bytes::Bytes;
-    use scuffle_h264::{AVCDecoderConfigurationRecord, Sps};
-    use std::io;
-
-    let Ok(config) = AVCDecoderConfigurationRecord::parse(&mut io::Cursor::new(
-        Bytes::copy_from_slice(codec_private),
-    )) else {
-        return false;
-    };
-    if config.configuration_version != 1 || config.sps.is_empty() || config.pps.is_empty() {
-        return false;
-    }
-    config.sps.iter().any(|sps_bytes| {
-        let rbsp = scan::h2645_unescape_rbsp(sps_bytes);
-        Sps::parse(io::Cursor::new(rbsp.as_ref())).is_ok()
-    })
-}
-
+/// (e.g. MKV CodecPrivate or MP4 avcC box contents), or a bare SPS.
 pub(crate) fn extract_h264_info(codec_private: &[u8]) -> CodecInfo {
-    use bytes::Bytes;
-    use scuffle_h264::{AVCDecoderConfigurationRecord, Sps};
-    use std::io;
-
-    let data = Bytes::from(codec_private.to_vec());
-    if let Ok(config) = AVCDecoderConfigurationRecord::parse(&mut io::Cursor::new(data)) {
+    if let Some(config) = AvcConfig::parse(codec_private) {
         let profile = map_h264_profile(config.profile_indication);
-        let parse_sps = |sps_bytes: &[u8]| {
-            let rbsp = scan::h2645_unescape_rbsp(sps_bytes);
-            Sps::parse(io::Cursor::new(rbsp.as_ref())).ok()
-        };
-
-        // Bit depth: prefer the extended_config field (from the AVCC record itself),
-        // fall back to parsing the first SPS NAL unit.
-        let bit_depth = if let Some(ref ext) = config.extended_config {
-            Some(ext.bit_depth_luma_minus8 as i32 + 8)
-        } else {
-            config.sps.first().and_then(|sps_bytes| {
-                parse_sps(sps_bytes)
-                    .and_then(|sps| sps.ext.map(|ext| ext.bit_depth_luma_minus8 as i32 + 8))
-            })
-        };
-
         let first_sps = config
             .sps
             .first()
             .and_then(|sps_bytes| parse_sps(sps_bytes));
-        let color_transfer = first_sps.as_ref().and_then(|sps| {
-            let transfer = sps.color_config.as_ref()?.transfer_characteristics as u32;
-            if transfer > 0 && transfer != 2 {
-                Some(transfer)
-            } else {
-                None
-            }
-        });
+
+        // Bit depth: prefer the extension of the avcC record itself, fall
+        // back to the first SPS.
+        let bit_depth = config
+            .bit_depth_luma_minus8
+            .or_else(|| first_sps.as_ref()?.bit_depth_luma_minus8)
+            .map(|depth| i32::from(depth) + 8);
+        let size = first_sps.as_ref().and_then(sps_dimensions);
 
         return CodecInfo {
             profile,
             bit_depth: bit_depth.or(Some(8)),
-            color_transfer,
-            width: first_sps
-                .as_ref()
-                .and_then(sps_dimensions)
-                .map(|size| size.0),
-            height: first_sps
-                .as_ref()
-                .and_then(sps_dimensions)
-                .map(|size| size.1),
+            color_transfer: first_sps.as_ref().and_then(reported_transfer),
+            width: size.map(|size| size.0),
+            height: size.map(|size| size.1),
             frame_rate_fps: first_sps.as_ref().and_then(Sps::frame_rate),
         };
     }
 
-    let rbsp = scan::h2645_unescape_rbsp(codec_private);
-    let sps = match Sps::parse(io::Cursor::new(rbsp.as_ref())) {
-        Ok(sps) => sps,
-        Err(_) => return CodecInfo::default(),
+    let Some(sps) = parse_sps(codec_private) else {
+        return CodecInfo::default();
     };
-    let bit_depth = sps
-        .ext
-        .as_ref()
-        .map(|ext| ext.bit_depth_luma_minus8 as i32 + 8)
-        .or(Some(8));
-    let color_transfer = sps.color_config.as_ref().and_then(|color| {
-        let transfer = color.transfer_characteristics as u32;
-        if transfer > 0 && transfer != 2 {
-            Some(transfer)
-        } else {
-            None
-        }
-    });
-
+    let size = sps_dimensions(&sps);
     CodecInfo {
         profile: map_h264_profile(sps.profile_idc),
-        bit_depth,
-        color_transfer,
-        width: sps_dimensions(&sps).map(|size| size.0),
-        height: sps_dimensions(&sps).map(|size| size.1),
+        bit_depth: Some(
+            sps.bit_depth_luma_minus8
+                .map_or(8, |depth| i32::from(depth) + 8),
+        ),
+        color_transfer: reported_transfer(&sps),
+        width: size.map(|size| size.0),
+        height: size.map(|size| size.1),
         frame_rate_fps: sps.frame_rate(),
     }
 }
@@ -157,18 +146,4 @@ fn map_h264_profile(profile_idc: u8) -> Option<String> {
         _ => return None,
     };
     Some(name.into())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn h264_profile_mapping() {
-        assert_eq!(map_h264_profile(66).as_deref(), Some("Baseline"));
-        assert_eq!(map_h264_profile(77).as_deref(), Some("Main"));
-        assert_eq!(map_h264_profile(100).as_deref(), Some("High"));
-        assert_eq!(map_h264_profile(110).as_deref(), Some("High 10"));
-        assert_eq!(map_h264_profile(0), None);
-    }
 }

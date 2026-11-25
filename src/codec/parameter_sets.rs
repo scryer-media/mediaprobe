@@ -5,7 +5,6 @@ use crate::warning;
 use crate::{
     ChromaLocation, ColorMetadata, ProbeReport, ProbeWarning, Provenance, Rational, StreamMetadata,
 };
-use std::io::Cursor;
 
 fn aspect(id: u8, width: u16, height: u16) -> Option<Rational> {
     let (width, height) = match id {
@@ -72,26 +71,20 @@ fn chroma_location(chroma_format_idc: u8, loc_type: u64) -> Option<ChromaLocatio
 }
 
 fn avc(data: &[u8]) -> Option<StreamMetadata> {
-    let parse = |nal: &[u8]| {
-        let rbsp = crate::scan::h2645_unescape_rbsp(nal);
-        scuffle_h264::Sps::parse(Cursor::new(rbsp.as_ref())).ok()
-    };
+    let parse = super::h264::parse_sps;
     let sps = if data.first() == Some(&1) {
-        let config = scuffle_h264::AVCDecoderConfigurationRecord::parse(&mut Cursor::new(
-            bytes::Bytes::copy_from_slice(data),
-        ))
-        .ok()?;
+        let config = super::h264::AvcConfig::parse(data)?;
         config.sps.iter().take(32).find_map(|nal| parse(nal))?
     } else {
         parse(data)?
     };
-    let depth = i32::from(sps.ext.as_ref().map_or(0, |ext| ext.bit_depth_luma_minus8)) + 8;
-    let chroma = sps.ext.as_ref().map_or(1, |ext| ext.chroma_format_idc);
+    let depth = i32::from(sps.bit_depth_luma_minus8.unwrap_or(0)) + 8;
+    let chroma = sps.chroma_format_idc;
     let mut details = StreamMetadata {
         bit_depth: Some(depth),
         level: Some(u32::from(sps.level_idc)),
         field_order: Some(
-            if sps.mb_adaptive_frame_field_flag.is_none() {
+            if sps.frame_mbs_only_flag {
                 "progressive"
             } else {
                 "interlaced"
@@ -101,8 +94,8 @@ fn avc(data: &[u8]) -> Option<StreamMetadata> {
         sample_aspect_ratio: sps
             .sample_aspect_ratio
             .as_ref()
-            .and_then(|sar| aspect(sar.aspect_ratio_idc.0, sar.sar_width, sar.sar_height)),
-        declared_frame_rate: sps.timing_info.as_ref().and_then(|timing| {
+            .and_then(|sar| aspect(sar.aspect_ratio_idc, sar.sar_width, sar.sar_height)),
+        declared_frame_rate: sps.timing.as_ref().and_then(|timing| {
             Rational::new(
                 i64::from(timing.time_scale.get()),
                 u64::from(timing.num_units_in_tick.get()) * 2,
@@ -113,89 +106,70 @@ fn avc(data: &[u8]) -> Option<StreamMetadata> {
     if sps.profile_idc == 66 && sps.constraint_set1_flag {
         details.profile = Some("Constrained Baseline".into());
     }
-    if let Some(color) = &sps.color_config {
+    if let Some(color) = &sps.color {
         details.color = ColorMetadata {
-            primaries: (color.color_primaries != 2).then_some(u32::from(color.color_primaries)),
-            transfer: (color.transfer_characteristics != 2)
-                .then_some(u32::from(color.transfer_characteristics)),
-            matrix: (color.matrix_coefficients != 2)
-                .then_some(u32::from(color.matrix_coefficients)),
-            full_range: Some(color.video_full_range_flag),
+            primaries: (color.primaries != 2).then_some(u32::from(color.primaries)),
+            transfer: (color.transfer != 2).then_some(u32::from(color.transfer)),
+            matrix: (color.matrix != 2).then_some(u32::from(color.matrix)),
+            full_range: Some(color.full_range),
             provenance: Provenance::Bitstream,
             ..Default::default()
         };
     }
     details.chroma_location = sps
-        .chroma_sample_loc
-        .as_ref()
-        .and_then(|loc| chroma_location(chroma, u64::from(loc.chroma_sample_loc_type_top_field)));
+        .chroma_sample_loc_type_top_field
+        .and_then(|top| chroma_location(chroma, u64::from(top)));
     details.pixel_format = pixel_format(chroma, depth, details.color.matrix);
     Some(details)
 }
 
 fn hevc(data: &[u8]) -> Option<StreamMetadata> {
     let sps = if data.first() == Some(&1) {
-        let config =
-            scuffle_h265::HEVCDecoderConfigurationRecord::demux(&mut Cursor::new(data)).ok()?;
-        config
-            .arrays
-            .iter()
-            .filter(|array| array.nal_unit_type == scuffle_h265::NALUnitType::SpsNut)
-            .flat_map(|array| array.nalus.iter())
+        super::hevc::hvcc::parse(data)?
+            .sps_nal_units()
             .take(32)
-            .find_map(|nal| super::hevc::parse_sps(nal))?
+            .find_map(super::hevc::parse_sps)?
     } else {
         super::hevc::parse_sps(data)?
     };
-    let sps = &sps.rbsp;
-    let profile = &sps.profile_tier_level.general_profile;
     let depth = i32::from(sps.bit_depth_luma_minus8) + 8;
     let mut details = StreamMetadata {
         bit_depth: Some(depth),
-        level: profile.level_idc.map(u32::from),
+        level: Some(u32::from(sps.level_idc)),
         ..Default::default()
     };
-    if profile.progressive_source_flag && !profile.interlaced_source_flag {
+    if sps.progressive_source && !sps.interlaced_source {
         details.field_order = Some("progressive".into());
     }
-    if let Some(vui) = &sps.vui_parameters {
-        if vui.field_seq_flag {
+    if let Some(vui) = &sps.vui {
+        if vui.field_seq {
             details.field_order = Some("interlaced".into());
         }
-        details.sample_aspect_ratio = match vui.aspect_ratio_info {
-            scuffle_h265::AspectRatioInfo::Predefined(id) => aspect(id.0, 0, 0),
-            scuffle_h265::AspectRatioInfo::ExtendedSar {
-                sar_width,
-                sar_height,
-            } => aspect(255, sar_width, sar_height),
-        };
-        let color = &vui.video_signal_type;
+        details.sample_aspect_ratio = aspect(vui.aspect_ratio_idc, vui.sar_width, vui.sar_height);
         details.color = ColorMetadata {
-            primaries: (color.colour_primaries != 2).then_some(u32::from(color.colour_primaries)),
-            transfer: (color.transfer_characteristics != 2)
-                .then_some(u32::from(color.transfer_characteristics)),
-            matrix: (color.matrix_coeffs != 2).then_some(u32::from(color.matrix_coeffs)),
-            // This parser materializes inferred defaults without retaining the
-            // presence flag. Do not overwrite an explicit container range with it.
-            full_range: (color.video_full_range_flag
-                || color.colour_primaries != 2
-                || color.transfer_characteristics != 2
-                || color.matrix_coeffs != 2)
-                .then_some(color.video_full_range_flag),
+            primaries: (vui.colour_primaries != 2).then_some(u32::from(vui.colour_primaries)),
+            transfer: (vui.transfer_characteristics != 2)
+                .then_some(u32::from(vui.transfer_characteristics)),
+            matrix: (vui.matrix_coeffs != 2).then_some(u32::from(vui.matrix_coeffs)),
+            // An absent video signal type reads as limited range with
+            // unspecified colour. Do not overwrite an explicit container
+            // range with that default.
+            full_range: (vui.video_full_range
+                || vui.colour_primaries != 2
+                || vui.transfer_characteristics != 2
+                || vui.matrix_coeffs != 2)
+                .then_some(vui.video_full_range),
             provenance: Provenance::Bitstream,
             ..Default::default()
         };
         details.chroma_location = vui
-            .chroma_loc_info
-            .as_ref()
-            .and_then(|loc| chroma_location(sps.chroma_format_idc, loc.top_field));
-        details.declared_frame_rate = vui.vui_timing_info.as_ref().and_then(|timing| {
-            let ticks = timing
-                .num_ticks_poc_diff_one_minus1
-                .map(|value| u64::from(value) + 1)?;
+            .chroma_sample_loc_type_top_field
+            .and_then(|loc| chroma_location(sps.chroma_format_idc, u64::from(loc)));
+        details.declared_frame_rate = vui.timing.and_then(|timing| {
+            let ticks = u64::from(timing.num_ticks_poc_diff_one_minus1?) + 1;
             Rational::new(
-                i64::from(timing.time_scale.get()),
-                u64::from(timing.num_units_in_tick.get()).checked_mul(ticks)?,
+                i64::from(timing.time_scale),
+                u64::from(timing.num_units_in_tick).checked_mul(ticks)?,
             )
         });
     }
