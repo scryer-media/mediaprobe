@@ -793,3 +793,137 @@ fn decodes_legacy_mdhd_english_language_code() {
     assert_eq!(decode_mdhd_language(6), Some("spa".to_string()));
     assert_eq!(decode_mdhd_language(11), Some("jpn".to_string()));
 }
+
+fn full_box(name: &[u8; 4], version: u8, fields: &[u32]) -> Vec<u8> {
+    let mut payload = vec![version, 0, 0, 0];
+    for field in fields {
+        payload.extend_from_slice(&field.to_be_bytes());
+    }
+    make_box(name, &payload)
+}
+
+/// `ftyp` and a `moov` whose one track holds `stbl_children` in its sample
+/// table and `edts_children` in its edit box.
+fn mov_with_tables(stbl_children: &[u8], edts_children: &[u8]) -> Vec<u8> {
+    let stbl = make_box(b"stbl", stbl_children);
+    let minf = make_box(b"minf", &stbl);
+    let mdia = make_box(b"mdia", &minf);
+    let mut trak_payload = make_box(b"edts", edts_children);
+    trak_payload.extend_from_slice(&mdia);
+    let moov = make_box(b"moov", &make_box(b"trak", &trak_payload));
+    let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+    file.extend_from_slice(&moov);
+    file
+}
+
+#[test]
+fn sample_size_count_past_its_box_is_refused_before_mp4parse() {
+    // One flipped bit turns a count of 24 into 0x40000018, and mp4parse
+    // reserved 4 bytes for each before reading any.
+    let file = mov_with_tables(&full_box(b"stsz", 0, &[0, 0x4000_0018]), &[]);
+    let mut prepared = file.clone();
+    assert_eq!(
+        bound_mp4parse_tables(&mut prepared),
+        Err(OversizedTable {
+            name: *b"stsz",
+            count: 0x4000_0018
+        })
+    );
+    match parse_mp4_source(&mut Cursor::new(file), "mov", ProbeDepth::Full) {
+        Err(ProbeError::Malformed(message)) => {
+            assert_eq!(
+                message,
+                "mp4 parse: stsz entry count 1073741848 exceeds its box"
+            )
+        }
+        other => panic!("expected the table refusal, got {other:?}"),
+    }
+}
+
+#[test]
+fn every_counted_table_is_held_to_its_box() {
+    for (name, version, fields, entry_bytes) in [
+        (*b"stts", 0, vec![], 8),
+        (*b"stsc", 0, vec![], 12),
+        (*b"stsz", 0, vec![0], 4),
+        (*b"stco", 0, vec![], 4),
+        (*b"co64", 0, vec![], 8),
+        (*b"stss", 0, vec![], 4),
+        (*b"ctts", 0, vec![], 8),
+    ] {
+        let table = |count: u32| {
+            let mut fields = fields.clone();
+            fields.push(count);
+            let mut table = full_box(&name, version, &fields);
+            table.extend_from_slice(&vec![0; 2 * entry_bytes]);
+            let size = table.len() as u32;
+            table[0..4].copy_from_slice(&size.to_be_bytes());
+            mov_with_tables(&table, &[])
+        };
+        assert_eq!(bound_mp4parse_tables(&mut table(2)), Ok(()), "{name:?}");
+        assert_eq!(
+            bound_mp4parse_tables(&mut table(3)),
+            Err(OversizedTable { name, count: 3 }),
+            "{name:?}"
+        );
+    }
+    for (version, entry_bytes) in [(0_u8, 12), (1, 20)] {
+        let mut elst = full_box(b"elst", version, &[1]);
+        elst.extend_from_slice(&vec![0; entry_bytes - 1]);
+        let size = elst.len() as u32;
+        elst[0..4].copy_from_slice(&size.to_be_bytes());
+        assert_eq!(
+            bound_mp4parse_tables(&mut mov_with_tables(&[], &elst)),
+            Err(OversizedTable {
+                name: *b"elst",
+                count: 1
+            })
+        );
+    }
+}
+
+#[test]
+fn table_bounds_follow_what_mp4parse_reads() {
+    // A constant sample size reserves nothing, whatever the count.
+    let constant = full_box(b"stsz", 0, &[512, u32::MAX]);
+    assert_eq!(
+        bound_mp4parse_tables(&mut mov_with_tables(&constant, &[])),
+        Ok(())
+    );
+    // mp4parse reads `elst` only in `edts` and the sample tables only in
+    // `stbl`; the same boxes elsewhere are skipped.
+    let oversized_elst = full_box(b"elst", 0, &[u32::MAX]);
+    let oversized_stts = full_box(b"stts", 0, &[u32::MAX]);
+    assert_eq!(
+        bound_mp4parse_tables(&mut mov_with_tables(&oversized_elst, &oversized_stts)),
+        Ok(())
+    );
+    // A table that claims more than its parent holds is read only to the
+    // parent's end.
+    let mut overrun = full_box(b"stco", 0, &[2]);
+    overrun.extend_from_slice(&[0; 4]);
+    overrun[0..4].copy_from_slice(&24_u32.to_be_bytes());
+    assert_eq!(
+        bound_mp4parse_tables(&mut mov_with_tables(&overrun, &[])),
+        Err(OversizedTable {
+            name: *b"stco",
+            count: 2
+        })
+    );
+}
+
+#[test]
+fn overstated_sample_description_count_is_lowered_to_what_fits() {
+    let mut stsd = full_box(b"stsd", 0, &[u32::MAX]);
+    stsd.extend_from_slice(&make_box(b"avc1", &[]));
+    let size = stsd.len() as u32;
+    stsd[0..4].copy_from_slice(&size.to_be_bytes());
+    let mut file = mov_with_tables(&stsd, &[]);
+    let at = file
+        .windows(4)
+        .position(|window| window == b"stsd")
+        .unwrap()
+        + 8;
+    assert_eq!(bound_mp4parse_tables(&mut file), Ok(()));
+    assert_eq!(file[at..at + 4], 1_u32.to_be_bytes());
+}
