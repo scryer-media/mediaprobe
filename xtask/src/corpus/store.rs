@@ -5,9 +5,10 @@
 //! Writes go through R2's S3-compatible API with SigV4 (or a directory).
 //! Every write is create-only: an existing key is never overwritten.
 
+use std::io::Read as _;
 use std::path::{Path, PathBuf};
 
-use super::http::{Body, Client, Policy, PutOutcome};
+use super::http::{Body, Client, MAX_DOCUMENT, Policy, PutOutcome};
 use super::sigv4::{self, Credentials, Signable};
 use super::{Context as _, Result, fail};
 
@@ -32,6 +33,8 @@ impl Source {
     }
 
     /// A small document (manifest, bundle, provenance). `None` if absent.
+    /// One longer than [`MAX_DOCUMENT`] fails before it is read whole: its
+    /// digest is checked only after it is in memory.
     pub(crate) fn get(&self, key: &str) -> Result<Option<Vec<u8>>> {
         match self {
             Source::Http { client, base_url } => {
@@ -42,9 +45,17 @@ impl Source {
                 if !path.is_file() {
                     return Ok(None);
                 }
-                std::fs::read(&path)
-                    .map(Some)
-                    .context(|| format!("read {}", path.display()))
+                let mut bytes = Vec::new();
+                std::fs::File::open(&path)
+                    .and_then(|file| file.take(MAX_DOCUMENT + 1).read_to_end(&mut bytes))
+                    .context(|| format!("read {}", path.display()))?;
+                if bytes.len() as u64 > MAX_DOCUMENT {
+                    return fail(format!(
+                        "{}: longer than the {MAX_DOCUMENT} bytes a document may have",
+                        path.display()
+                    ));
+                }
+                Ok(Some(bytes))
             }
         }
     }
@@ -339,6 +350,13 @@ mod tests {
         let source = Source::Dir { root: root.clone() };
         assert_eq!(source.get("a/b").unwrap(), Some(b"one".to_vec()));
         assert_eq!(source.get("a/missing").unwrap(), None);
+        // A sparse file far past the cap: refused after reading one byte past
+        // the cap, never read whole.
+        let oversized = std::fs::File::create(root.join("a/oversized")).unwrap();
+        oversized.set_len(MAX_DOCUMENT * 64).unwrap();
+        drop(oversized);
+        let refused = source.get("a/oversized").unwrap_err().to_string();
+        assert!(refused.contains("longer than"), "{refused}");
         let out = root.join("out/x");
         source
             .fetch("a/b", &out, &super::super::blake3_bytes(b"one"), 3)
