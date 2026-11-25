@@ -333,12 +333,13 @@ fn old_check_scaling_matrices(rbsp: &[u8]) -> Option<()> {
     Some(())
 }
 
-/// The picture size the crate computed from the dependency's SPS.
-fn old_sps_dimensions(sps: &scuffle_h264::Sps) -> Option<(i32, i32)> {
+/// The picture size the dependency's SPS fields describe, with the crop
+/// units of the specification.
+fn expected_dimensions(sps: &scuffle_h264::Sps) -> Option<(i32, i32)> {
     let crop = sps.frame_crop_info.as_ref();
-    let cropped = |units: u64, scale: u64, low: u64, high: u64| {
+    let cropped = |units: u64, scale: u64, crop_unit: u64, low: u64, high: u64| {
         let full = units.checked_add(1)?.checked_mul(16)?.checked_mul(scale)?;
-        let lost = low.checked_add(high)?.checked_mul(2)?;
+        let lost = low.checked_add(high)?.checked_mul(crop_unit)?;
         i32::try_from(full.checked_sub(lost)?).ok()
     };
     let field_scale = if sps.mb_adaptive_frame_field_flag.is_none() {
@@ -346,15 +347,23 @@ fn old_sps_dimensions(sps: &scuffle_h264::Sps) -> Option<(i32, i32)> {
     } else {
         2
     };
+    let chroma = sps.ext.as_ref().map_or(1, |ext| ext.chroma_format_idc);
+    let (unit_x, unit_y) = match chroma {
+        1 => (2, 2 * field_scale),
+        2 => (2, field_scale),
+        _ => (1, field_scale),
+    };
     let width = cropped(
         sps.pic_width_in_mbs_minus1,
         1,
+        unit_x,
         crop.map_or(0, |c| c.frame_crop_left_offset),
         crop.map_or(0, |c| c.frame_crop_right_offset),
     )?;
     let height = cropped(
         sps.pic_height_in_map_units_minus1,
         field_scale,
+        unit_y,
         crop.map_or(0, |c| c.frame_crop_top_offset),
         crop.map_or(0, |c| c.frame_crop_bottom_offset),
     )?;
@@ -447,7 +456,7 @@ fn assert_same_sps(ours: &Sps, theirs: &scuffle_h264::Sps, label: &str) {
         theirs.frame_rate().map(f64::to_bits),
         "{label}"
     );
-    assert_eq!(sps_dimensions(ours), old_sps_dimensions(theirs), "{label}");
+    assert_eq!(sps_dimensions(ours), expected_dimensions(theirs), "{label}");
 }
 
 /// How one SPS compared with the crate's earlier behaviour.
@@ -750,7 +759,7 @@ fn a_full_sps_reads_every_field() {
             }),
         }
     );
-    assert_eq!(sps_dimensions(&sps), Some((320, 472)));
+    assert_eq!(sps_dimensions(&sps), Some((320, 464)));
     assert_eq!(sps.frame_rate(), Some(60000.0 / 2002.0));
     let mut baseline = SpsSpec::new(66);
     baseline.constraint_flags = 0x40;
@@ -1006,8 +1015,8 @@ fn picture_size_arithmetic_is_checked() {
     // A crop of the whole picture leaves nothing; one more is too much.
     assert_eq!(size(0, 0, true, Some([4, 4, 0, 0])), Some((0, 16)));
     assert_eq!(size(0, 0, true, Some([4, 5, 0, 0])), None);
-    assert_eq!(size(0, 0, false, Some([0, 0, 8, 8])), Some((16, 0)));
-    assert_eq!(size(0, 0, false, Some([0, 0, 8, 9])), None);
+    assert_eq!(size(0, 0, false, Some([0, 0, 4, 4])), Some((16, 0)));
+    assert_eq!(size(0, 0, false, Some([0, 0, 4, 5])), None);
     let most = u64::from(u32::MAX - 1);
     assert_eq!(size(most, most, false, Some([most; 4])), None);
     assert_eq!(size(most, most, false, None), None);
@@ -1300,4 +1309,40 @@ fn corpus_parameter_sets_read_as_scuffle_reads_them() {
     );
     assert!(accepted >= 20, "{tally:?}");
     assert!(usable >= 20, "{usable}");
+}
+
+#[test]
+fn crop_units_follow_chroma_format_and_field_coding() {
+    // A 1920x1088 coded picture cropped to 1080 lines.
+    let size = |profile: u64, chroma: u64, frame_mbs_only: bool, bottom: u64| {
+        let mut spec = SpsSpec::new(profile);
+        spec.chroma_format_idc = chroma;
+        spec.width_mbs_minus1 = 119;
+        spec.height_map_units_minus1 = if frame_mbs_only { 67 } else { 33 };
+        spec.frame_mbs_only = frame_mbs_only;
+        spec.crop = Some([0, 0, 0, bottom]);
+        sps_dimensions(&parse_sps(&spec.nal()).expect("parses"))
+    };
+    // 4:2:0: two luma rows per unit in a frame, four when coding fields.
+    assert_eq!(size(77, 1, true, 4), Some((1920, 1080)));
+    assert_eq!(size(77, 1, false, 2), Some((1920, 1080)));
+    // 4:2:2, 4:4:4 and monochrome: one luma row per unit, two for fields.
+    for chroma in [2, 3, 0] {
+        assert_eq!(size(122, chroma, true, 8), Some((1920, 1080)), "{chroma}");
+        assert_eq!(size(122, chroma, false, 4), Some((1920, 1080)), "{chroma}");
+    }
+
+    // Horizontally, 4:4:4 and monochrome count single luma columns.
+    let width = |chroma: u64| {
+        let mut spec = SpsSpec::new(244);
+        spec.chroma_format_idc = chroma;
+        spec.width_mbs_minus1 = 119;
+        spec.height_map_units_minus1 = 67;
+        spec.crop = Some([2, 2, 0, 0]);
+        sps_dimensions(&parse_sps(&spec.nal()).expect("parses")).map(|size| size.0)
+    };
+    assert_eq!(width(1), Some(1912));
+    assert_eq!(width(2), Some(1912));
+    assert_eq!(width(3), Some(1916));
+    assert_eq!(width(0), Some(1916));
 }

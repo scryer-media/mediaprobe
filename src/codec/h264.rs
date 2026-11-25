@@ -18,28 +18,41 @@ pub(crate) fn parse_sps(nal: &[u8]) -> Option<Sps> {
 
 /// The cropped picture size an SPS declares, or `None` when its fields do
 /// not describe one: a crop larger than the picture, or a size beyond `i32`.
+///
+/// Crop offsets count in chroma samples horizontally, and in chroma rows of
+/// a frame or of a field vertically, so their unit depends on the chroma
+/// format and on whether the stream codes fields.
 pub(crate) fn sps_dimensions(sps: &Sps) -> Option<(i32, i32)> {
     let crop = sps.frame_crop.as_ref();
-    let cropped = |units: u32, scale: u64, low: u32, high: u32| {
+    let cropped = |units: u32, scale: u64, crop_unit: u64, low: u32, high: u32| {
         let full = u64::from(units)
             .checked_add(1)?
             .checked_mul(16)?
             .checked_mul(scale)?;
         let lost = u64::from(low)
             .checked_add(u64::from(high))?
-            .checked_mul(2)?;
+            .checked_mul(crop_unit)?;
         i32::try_from(full.checked_sub(lost)?).ok()
     };
     let field_scale = if sps.frame_mbs_only_flag { 1 } else { 2 };
+    // 4:2:0 and 4:2:2 halve the chroma width; only 4:2:0 halves its height.
+    let crop_unit_x = if matches!(sps.chroma_format_idc, 1 | 2) {
+        2
+    } else {
+        1
+    };
+    let crop_unit_y = if sps.chroma_format_idc == 1 { 2 } else { 1 } * field_scale;
     let width = cropped(
         sps.pic_width_in_mbs_minus1,
         1,
+        crop_unit_x,
         crop.map_or(0, |c| c.left),
         crop.map_or(0, |c| c.right),
     )?;
     let height = cropped(
         sps.pic_height_in_map_units_minus1,
         field_scale,
+        crop_unit_y,
         crop.map_or(0, |c| c.top),
         crop.map_or(0, |c| c.bottom),
     )?;
