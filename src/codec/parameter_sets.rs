@@ -72,10 +72,7 @@ fn chroma_location(chroma_format_idc: u8, loc_type: u64) -> Option<ChromaLocatio
 }
 
 fn avc(data: &[u8]) -> Option<StreamMetadata> {
-    let parse = |nal: &[u8]| {
-        let rbsp = crate::scan::h2645_unescape_rbsp(nal);
-        scuffle_h264::Sps::parse(Cursor::new(rbsp.as_ref())).ok()
-    };
+    let parse = super::h264::parse_sps;
     let sps = if data.first() == Some(&1) {
         let config = scuffle_h264::AVCDecoderConfigurationRecord::parse(&mut Cursor::new(
             bytes::Bytes::copy_from_slice(data),

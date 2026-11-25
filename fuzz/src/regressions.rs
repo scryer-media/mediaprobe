@@ -36,6 +36,23 @@ pub struct Regression {
 pub const REGRESSIONS: &[Regression] = &[
     Regression {
         open: false,
+        name: "h264_sps_exp_golomb_prefix_overflow",
+        target: Target::Container("h264"),
+        finding: "scuffle-expgolomb 0.1.5 shifts its result once per leading zero bit with \
+                  no limit and then subtracts one (lib.rs:88), so a prefix of 64 zero bits \
+                  followed by 64 zero value bits leaves zero and the subtraction panics on \
+                  overflow. Found by the elementary_h264 fuzz target in an SPS padded with \
+                  zero bytes; minimised to one SPS. Closed: a parameter set with a zero run \
+                  that long is refused before it reaches the dependency.",
+        // Annex B start code, then an SPS whose seq_parameter_set_id has a
+        // 64-bit zero prefix.
+        input: &[
+            0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
+        ],
+    },
+    Regression {
+        open: false,
         name: "hevc_sps_ctb_below_min_tb",
         target: Target::CodecConfig,
         finding: "scuffle-h265 0.2.2 subtracts min_tb_log2_size_y from ctb_log2_size_y \

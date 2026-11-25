@@ -2,7 +2,7 @@
 //! length size.
 
 use super::CodecInfo;
-use super::bits::BitReader;
+use super::bits::{BitReader, EXP_GOLOMB_ZERO_RUN, has_terminated_zero_run};
 
 /// Bits in one `profile_tier_level` profile entry, without its level.
 const PROFILE_BITS: usize = 88;
@@ -14,22 +14,35 @@ const LEVEL_BITS: usize = 8;
 /// `scuffle-h265` subtracts the minimum transform block size from the coding
 /// tree block size unchecked, so an SPS whose transform block is the larger
 /// of the two overflows inside it. Such an SPS is refused here first.
+///
+/// So is one with a run of zero bits, after the profile and level, long
+/// enough to overflow the dependency's Exp-Golomb reader. The profile and
+/// level hold reserved zero bits of their own and no Exp-Golomb value.
 pub(crate) fn parse_sps(nal: &[u8]) -> Option<scuffle_h265::SpsNALUnit> {
-    sps_block_sizes(nal).filter(|sizes| sizes.min_transform_log2 <= sizes.coding_tree_log2)?;
+    let rbsp = crate::scan::h2645_unescape_rbsp(nal.get(2..)?);
+    let sizes = sps_block_sizes(&rbsp)?;
+    if sizes.min_transform_log2 > sizes.coding_tree_log2
+        || has_terminated_zero_run(&rbsp, sizes.first_exp_golomb_bit, EXP_GOLOMB_ZERO_RUN)
+    {
+        return None;
+    }
     scuffle_h265::SpsNALUnit::parse(std::io::Cursor::new(nal)).ok()
 }
 
 struct SpsBlockSizes {
+    /// Where the first Exp-Golomb value starts, after the profile and level.
+    first_exp_golomb_bit: usize,
     coding_tree_log2: u64,
     min_transform_log2: u64,
 }
 
 /// Reads an SPS as far as its block sizes, following the field order and
 /// widths `scuffle-h265` reads so both see the same values.
-fn sps_block_sizes(nal: &[u8]) -> Option<SpsBlockSizes> {
-    // Emulation prevention starts after the two-byte NAL header.
-    let rbsp = crate::scan::h2645_unescape_rbsp(nal.get(2..)?);
-    let mut bits = BitReader::new(&rbsp);
+///
+/// `rbsp` is the NAL unit after its two-byte header, where emulation
+/// prevention starts, with the emulation prevention bytes removed.
+fn sps_block_sizes(rbsp: &[u8]) -> Option<SpsBlockSizes> {
+    let mut bits = BitReader::new(rbsp);
 
     bits.skip_bits(4)?; // sps_video_parameter_set_id
     let max_sub_layers_minus1 = bits.read_bits(3)? as usize;
@@ -56,6 +69,7 @@ fn sps_block_sizes(nal: &[u8]) -> Option<SpsBlockSizes> {
         bits.skip_bits(2 * (8 - max_sub_layers_minus1))?; // reserved_zero_2bits
     }
     bits.skip_bits(sub_layer_bits)?;
+    let first_exp_golomb_bit = bits.position();
 
     read_ue(&mut bits)?; // sps_seq_parameter_set_id
     if read_ue(&mut bits)? == 3 {
@@ -84,6 +98,7 @@ fn sps_block_sizes(nal: &[u8]) -> Option<SpsBlockSizes> {
     let coding_tree_log2 = min_coding_log2 + read_ue(&mut bits)?;
     let min_transform_log2 = read_ue(&mut bits)? + 2;
     Some(SpsBlockSizes {
+        first_exp_golomb_bit,
         coding_tree_log2,
         min_transform_log2,
     })
@@ -199,9 +214,13 @@ mod tests {
         0x80, 0x00, 0x00, 0x03, 0x00, 0x80, 0x00, 0x00, 0x0C, 0x04,
     ];
 
+    fn sps_rbsp() -> Vec<u8> {
+        crate::scan::h2645_unescape_rbsp(&SPS[2..]).into_owned()
+    }
+
     #[test]
     fn an_sps_whose_transform_block_exceeds_its_coding_tree_block_is_refused() {
-        let sizes = sps_block_sizes(&SPS).expect("block sizes");
+        let sizes = sps_block_sizes(&sps_rbsp()).expect("block sizes");
         assert!(sizes.min_transform_log2 > sizes.coding_tree_log2);
         assert!(parse_sps(&SPS).is_none());
         assert_eq!(extract_h265_info(&SPS).bit_depth, None);
@@ -210,7 +229,7 @@ mod tests {
     #[test]
     fn a_truncated_sps_is_refused() {
         for len in 0..20 {
-            assert!(sps_block_sizes(&SPS[..len]).is_none(), "{len}");
+            assert!(sps_block_sizes(&sps_rbsp()[..len]).is_none(), "{len}");
         }
     }
 

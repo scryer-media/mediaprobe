@@ -18,8 +18,7 @@ pub(crate) fn probe_h264_track(data: &[u8], track: &mut RawTrack) {
     let Some(sps_nal) = find_annexb_nal(data, |nal| (nal[0] & 0x1F) == 7) else {
         return;
     };
-    let rbsp = crate::scan::h2645_unescape_rbsp(sps_nal);
-    let Ok(sps) = scuffle_h264::Sps::parse(std::io::Cursor::new(rbsp.as_ref())) else {
+    let Some(sps) = super::h264::parse_sps(sps_nal) else {
         return;
     };
 

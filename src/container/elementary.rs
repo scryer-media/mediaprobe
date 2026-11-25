@@ -38,11 +38,9 @@ pub(crate) fn sniff_h264(data: &[u8]) -> bool {
             .first()
             .is_some_and(|byte| byte & 0x9f == 7 && byte & 0x60 != 0)
             && nal.len() <= 64 * 1024
+            && crate::codec::h264::parse_sps(nal).is_some()
         {
-            let rbsp = crate::scan::h2645_unescape_rbsp(nal);
-            if scuffle_h264::Sps::parse(std::io::Cursor::new(rbsp.as_ref())).is_ok() {
-                return true;
-            }
+            return true;
         }
     }
     false
