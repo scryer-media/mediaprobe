@@ -3,19 +3,19 @@
   "certificate_identity": "https://github.com/scryer-media/mediaprobe/.github/workflows/test-corpus-publish.yml@refs/heads/main",
   "certificate_oidc_issuer": "https://token.actions.githubusercontent.com",
   "manifest": {
-    "blake3": "ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0",
-    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.json"
+    "blake3": "88e0072bce5e0899566ff89a5f5833fdd6d8fcea37c6c0802c3fa3dec459c09d",
+    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/88e0072bce5e0899566ff89a5f5833fdd6d8fcea37c6c0802c3fa3dec459c09d.json"
   },
   "provenance": {
-    "blake3": "ed67e0eea1c19d159ca84c002a8713a4bbc422185fbf742c18bc48eea4a540c9",
-    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.provenance.json"
+    "blake3": "328f519040be1876d7c529bf631832da471ff56069724e9aa06527d67788ec70",
+    "url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/88e0072bce5e0899566ff89a5f5833fdd6d8fcea37c6c0802c3fa3dec459c09d.provenance.json"
   },
   "published_from": {
-    "commit": "3a14f0da3c37dae1db2d1c8d67eb6150654749ec",
-    "run": "https://github.com/scryer-media/mediaprobe/actions/runs/45462054718"
+    "commit": "b8b76206aa2ab052308d5434f57cbb558f60087a",
+    "run": "https://github.com/scryer-media/mediaprobe/actions/runs/45516763041"
   },
   "schema_version": 1,
   "signature": {
-    "bundle_url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/ba06bd15fc5f035a98324c33d34096295f94cb46cec1a2d5750d00d6917365d0.json.sigstore.json"
+    "bundle_url": "https://pub-0ecff0fd8707413d8048adc99c726e1c.r2.dev/test-corpus/manifests/blake3/88e0072bce5e0899566ff89a5f5833fdd6d8fcea37c6c0802c3fa3dec459c09d.json.sigstore.json"
   }
 }
