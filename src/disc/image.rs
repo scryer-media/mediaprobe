@@ -2,7 +2,7 @@
 //! Payloads remain in place; only bounded filesystem metadata is read here.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::{self, Read, SeekFrom};
+use std::io::{self, SeekFrom};
 
 use crate::source::{Extent, ExtentSource, MediaSource};
 
@@ -114,8 +114,7 @@ impl Reader<'_> {
 pub(super) fn read_file(source: &mut dyn MediaSource, file: &ImageFile) -> Result<Vec<u8>> {
     let mut extents = ExtentSource::new(source, file.extents.clone())?;
     let available = file.length.min(extents.len());
-    let mut bytes = vec![0; available as usize];
-    extents.read_exact(&mut bytes)?;
+    let bytes = crate::source::read_exact_vec(&mut extents, available as usize)?;
     if available < file.length {
         // Reading on would return nothing more; fail as that read would.
         return Err(std::io::Error::new(
@@ -1024,6 +1023,7 @@ fn udf_directory(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Read;
     #[test]
     fn whole_file_reads_validate_extents_before_reserving_a_buffer() {
         let mut image = std::io::Cursor::new((0..64_u8).collect::<Vec<_>>());
