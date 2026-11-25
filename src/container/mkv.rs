@@ -8,15 +8,16 @@ use std::path::Path;
 
 use crate::ProbeDepth;
 use crate::ProbeError;
-use crate::codec::ac3::{find_ac3_header, find_eac3_header};
-use crate::codec::dts::find_dts_header;
+use crate::codec::ac3::{
+    Ac3Header, find_ac3_header, find_ac3_header_from, find_eac3_header, find_eac3_header_from,
+};
+use crate::codec::dts::DtsChannelScan;
 use crate::codec::{
     audio_profile::{
         audio_profile_probe_spec, detect_audio_profile_from_probe_bytes,
         detect_header_audio_profile, merge_audio_profile,
     },
     dolby_vision::parse_dovi_config,
-    dts::detect_dts_channels_from_probe_bytes,
     hdr10plus::{scan_hevc_frame_for_hdr10plus, scan_itu_t35_payload_for_hdr10plus},
     hevc::{extract_h265_info, hevc_nal_length_size},
     normalize_codec_name, normalize_pcm_codec_name, normalize_vfw_codec_name,
@@ -1074,22 +1075,23 @@ fn merge_scanned_audio_channels(existing: Option<i32>, scanned: Option<i32>) -> 
 fn audio_channels_from_probe_bytes(codec_name: &Codec, data: &[u8]) -> Option<i32> {
     let mut cursor = 0usize;
     let mut channels = None;
+    // Each sync word asks for the first header from there on. The searches
+    // resume where the last one stopped, so the pass stays linear in the
+    // data however many sync words it holds.
+    let mut ac3 = scan::ForwardSearch::new();
+    let mut dts = DtsChannelScan::new(data);
+    let ac3_channels = |(start, header): (usize, Ac3Header)| (start, i32::from(header.channels));
 
     while let Some(candidate) = scan::find_audio_sync_candidate(data, cursor) {
         cursor = candidate.offset.saturating_add(1);
         let parsed = match (codec_name, candidate.kind) {
-            (Codec::Ac3, scan::AudioSyncKind::Ac3) => {
-                find_ac3_header(&data[candidate.offset..]).map(|header| i32::from(header.channels))
-            }
-            (Codec::Eac3, scan::AudioSyncKind::Ac3) => {
-                find_eac3_header(&data[candidate.offset..]).map(|header| i32::from(header.channels))
-            }
-            (Codec::Dts, scan::AudioSyncKind::Dts) => {
-                detect_dts_channels_from_probe_bytes(&data[candidate.offset..]).or_else(|| {
-                    find_dts_header(&data[candidate.offset..])
-                        .map(|header| i32::from(header.channels))
-                })
-            }
+            (Codec::Ac3, scan::AudioSyncKind::Ac3) => ac3.find(candidate.offset, |from| {
+                find_ac3_header_from(data, from).map(ac3_channels)
+            }),
+            (Codec::Eac3, scan::AudioSyncKind::Ac3) => ac3.find(candidate.offset, |from| {
+                find_eac3_header_from(data, from).map(ac3_channels)
+            }),
+            (Codec::Dts, scan::AudioSyncKind::Dts) => dts.channels_at(candidate.offset),
             _ => None,
         };
         if let Some(parsed) = parsed {

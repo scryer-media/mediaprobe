@@ -196,6 +196,45 @@ pub(crate) struct Mp4BoxNameCandidate {
     pub(crate) name: [u8; 4],
 }
 
+/// One forward search over a buffer, asked again from later and later
+/// offsets. A search from `from` returns the first hit at or after `from`
+/// with its offset, or the offset at which it gave up. Every start up to a
+/// hit finds that hit, and every start up to where a search gave up gives
+/// up there too, so only a start past both searches again, and a pass that
+/// asks from every sync word reads the buffer once rather than once per
+/// sync word.
+pub(crate) struct ForwardSearch<T> {
+    from: usize,
+    last: Option<Result<(usize, T), usize>>,
+}
+
+impl<T: Copy> ForwardSearch<T> {
+    pub(crate) fn new() -> Self {
+        Self {
+            from: 0,
+            last: None,
+        }
+    }
+
+    pub(crate) fn find(
+        &mut self,
+        from: usize,
+        search: impl FnOnce(usize) -> Result<(usize, T), usize>,
+    ) -> Option<T> {
+        if from >= self.from {
+            match self.last {
+                Some(Ok((at, hit))) if at >= from => return Some(hit),
+                Some(Err(stop)) if from <= stop => return None,
+                _ => {}
+            }
+        }
+        let last = search(from);
+        self.from = from;
+        self.last = Some(last);
+        last.ok().map(|(_, hit)| hit)
+    }
+}
+
 #[allow(dead_code)]
 pub(crate) fn find_audio_sync_candidate(data: &[u8], start: usize) -> Option<AudioSyncCandidate> {
     let data = data.get(start..)?;

@@ -1223,3 +1223,75 @@ fn colour_element_states_chroma_subsampling_and_siting() {
     assert_eq!(partial.chroma_subsampling, None);
     assert_eq!(partial.chroma_location, None);
 }
+
+/// The channel pass as it read before its searches resumed: each sync word
+/// searched the rest of the data afresh.
+fn audio_channels_searching_afresh(codec_name: &Codec, data: &[u8]) -> Option<i32> {
+    let mut cursor = 0;
+    let mut channels = None;
+    while let Some(candidate) = scan::find_audio_sync_candidate(data, cursor) {
+        cursor = candidate.offset + 1;
+        let rest = &data[candidate.offset..];
+        let parsed = match (codec_name, candidate.kind) {
+            (Codec::Ac3, scan::AudioSyncKind::Ac3) => {
+                find_ac3_header(rest).map(|header| i32::from(header.channels))
+            }
+            (Codec::Eac3, scan::AudioSyncKind::Ac3) => {
+                find_eac3_header(rest).map(|header| i32::from(header.channels))
+            }
+            (Codec::Dts, scan::AudioSyncKind::Dts) => {
+                crate::codec::dts::detect_dts_channels_from_probe_bytes(rest).or_else(|| {
+                    crate::codec::dts::find_dts_header(rest)
+                        .map(|header| i32::from(header.channels))
+                })
+            }
+            _ => None,
+        };
+        if let Some(parsed) = parsed {
+            channels = Some(channels.map_or(parsed, |existing: i32| existing.max(parsed)));
+        }
+    }
+    channels
+}
+
+#[test]
+fn audio_channel_pass_matches_searching_afresh_from_each_sync_word() {
+    let mut state = 0x2545_F491_4F6C_DD1D_u64;
+    let mut next = move || {
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        state
+    };
+    let fixtures: [&[u8]; 2] = [
+        include_bytes!("../../../tests/media/simd_dense_h264_ac3.ts"),
+        include_bytes!("../../../tests/media/simd_dense_h264_dts.ts"),
+    ];
+    let mut found = 0;
+    for fixture in fixtures {
+        for _ in 0..40 {
+            // A window of the fixture with some bytes changed, so that
+            // headers fail, end early, or are cut at the end.
+            let start = next() as usize % fixture.len();
+            let len = (next() as usize % 8192).min(fixture.len() - start);
+            let mut data = fixture[start..start + len].to_vec();
+            for _ in 0..next() % 64 {
+                if data.is_empty() {
+                    break;
+                }
+                let at = next() as usize % data.len();
+                data[at] = next() as u8;
+            }
+            for codec_name in [Codec::Ac3, Codec::Eac3, Codec::Dts] {
+                let expected = audio_channels_searching_afresh(&codec_name, &data);
+                found += usize::from(expected.is_some());
+                assert_eq!(
+                    audio_channels_from_probe_bytes(&codec_name, &data),
+                    expected,
+                    "{codec_name:?} at {start}+{len}"
+                );
+            }
+        }
+    }
+    assert!(found > 0);
+}

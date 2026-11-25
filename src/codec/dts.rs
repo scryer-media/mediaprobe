@@ -18,6 +18,8 @@ const DTS_SYNCWORD_XLL_X: u32 = 0x0200_0850;
 const DTS_SYNCWORD_XLL_X_IMAX: u32 = 0xF140_00D0;
 
 const DTS_CORE_PROBE_BYTES: usize = 32;
+/// The shortest buffer searched for an extension substream.
+const DTS_EXSS_MIN_BYTES: usize = 16;
 const DTS_XLL_CHSETS_MAX: u32 = 3;
 const DTS_XLL_PBR_BUFFER_MAX: usize = 240 << 10;
 const DTS_CHANNELS: [u8; 16] = [1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 6, 6, 6, 7, 8, 8];
@@ -37,6 +39,47 @@ const DCA_EXSS_RSV2: u16 = 0x800;
 pub(crate) fn detect_dts_channels_from_probe_bytes(prefix: &[u8]) -> Option<i32> {
     let asset = parse_dts_exss_asset(prefix);
     asset.map(|asset| asset.nchannels_total)
+}
+
+/// Channel counts read from one buffer at later and later offsets.
+/// `channels_at(offset)` gives what [`detect_dts_channels_from_probe_bytes`]
+/// and then [`find_dts_header`] give for `&data[offset..]`, but each search
+/// resumes where the previous one stopped instead of reading the rest of the
+/// buffer again.
+pub(crate) struct DtsChannelScan<'a> {
+    data: &'a [u8],
+    exss: scan::ForwardSearch<i32>,
+    core: scan::ForwardSearch<i32>,
+}
+
+impl<'a> DtsChannelScan<'a> {
+    pub(crate) fn new(data: &'a [u8]) -> Self {
+        Self {
+            data,
+            exss: scan::ForwardSearch::new(),
+            core: scan::ForwardSearch::new(),
+        }
+    }
+
+    pub(crate) fn channels_at(&mut self, offset: usize) -> Option<i32> {
+        let data = self.data;
+        let remaining = data.len().saturating_sub(offset);
+        let exss = if remaining < DTS_EXSS_MIN_BYTES {
+            None
+        } else {
+            self.exss.find(offset, |from| {
+                find_dts_exss_asset_from(data, from)
+                    .map(|asset| (asset.exss_start, asset.nchannels_total))
+                    .ok_or(data.len())
+            })
+        };
+        exss.or_else(|| {
+            self.core.find(offset, |from| {
+                find_dts_header_from(data, from)
+                    .map(|(start, header)| (start, i32::from(header.channels)))
+            })
+        })
+    }
 }
 
 pub(crate) fn detect_dts_profile_from_codec_id(codec_id: &str) -> Option<String> {
@@ -255,11 +298,17 @@ fn normalize_dts_core_prefix(data: &[u8]) -> Option<Vec<u8>> {
 }
 
 fn parse_dts_exss_asset(data: &[u8]) -> Option<DtsExssAssetInfo> {
-    if data.len() < 16 {
+    if data.len() < DTS_EXSS_MIN_BYTES {
         return None;
     }
+    find_dts_exss_asset_from(data, 0)
+}
 
-    for exss_start in 0..=data.len() - 4 {
+/// The first extension substream asset at or after `from`. What an asset
+/// holds depends only on the bytes from its sync word on, so the asset found
+/// from `from` is the one found in `&data[from..]`, offset by `from`.
+fn find_dts_exss_asset_from(data: &[u8], from: usize) -> Option<DtsExssAssetInfo> {
+    for exss_start in from..=data.len().checked_sub(4)? {
         let marker = u32::from_be_bytes(data[exss_start..exss_start + 4].try_into().ok()?);
         if marker != DTS_SYNCWORD_SUBSTREAM {
             continue;
@@ -735,10 +784,17 @@ pub(crate) struct DtsHeader {
 }
 
 pub(crate) fn find_dts_header(data: &[u8]) -> Option<DtsHeader> {
-    if data.len() < 11 {
-        return None;
+    find_dts_header_from(data, 0).ok().map(|(_, header)| header)
+}
+
+/// The first DTS core header at or after `from` and its offset, or the
+/// offset at which the search gave up. Every start from `from` up to
+/// that offset gives the same answer.
+pub(crate) fn find_dts_header_from(data: &[u8], from: usize) -> Result<(usize, DtsHeader), usize> {
+    if data.len().saturating_sub(from) < 11 {
+        return Err(data.len());
     }
-    let mut cursor = 0;
+    let mut cursor = from;
     while let Some(candidate) = scan::find_audio_sync_candidate(data, cursor) {
         if candidate.kind != scan::AudioSyncKind::Dts {
             cursor = candidate.offset + 1;
@@ -746,65 +802,74 @@ pub(crate) fn find_dts_header(data: &[u8]) -> Option<DtsHeader> {
         }
         let start = candidate.offset;
         if start + 11 > data.len() {
-            return None;
+            return Err(start);
         }
         cursor = start + 1;
-
-        let probe_end = (start + DTS_HEADER_PROBE_BYTES).min(data.len());
-        let normalized = normalize_dts_core_prefix(&data[start..probe_end])?;
-        let mut bits = BitReader::new(&normalized);
-        if bits.read_bits(32)? != DTS_SYNCWORD_CORE_BE {
-            continue;
+        match dts_header_at(data, start) {
+            Some(Some(header)) => return Ok((start, header)),
+            Some(None) => {}
+            None => return Err(start),
         }
-        bits.read_bit()?; // normal frame flag
-        let deficit_samples = bits.read_bits(5)? as u8 + 1;
-        if deficit_samples != 32 {
-            continue;
-        }
-        bits.skip_bits(1)?; // crc present
-        let npcmblocks = bits.read_bits(7)? as u8 + 1;
-        if (npcmblocks & 0x07) != 0 {
-            continue;
-        }
-        let frame_size = bits.read_bits(14)? + 1;
-        if frame_size < 96 {
-            continue;
-        }
-        let audio_mode = bits.read_bits(6)? as usize;
-        if audio_mode >= DTS_CHANNELS.len() {
-            continue;
-        }
-        let sample_rate_code = bits.read_bits(4)? as usize;
-        if *DTS_SAMPLE_RATES.get(sample_rate_code)? == 0 {
-            continue;
-        }
-        let bit_rate_code = bits.read_bits(5)? as usize;
-        if bit_rate_code >= DTS_BIT_RATES.len() {
-            continue;
-        }
-        if bits.read_bit()? != 0 {
-            continue;
-        }
-        bits.skip_bits(1 + 1 + 1 + 1 + 3 + 1 + 1)?; // drc/timestamp/aux/hdcd/ext/syncssf
-        let lfe_present = bits.read_bits(2)? as u8;
-        if lfe_present == 0x3 {
-            continue;
-        }
-
-        return Some(DtsHeader {
-            channels: DTS_CHANNELS[audio_mode] + u8::from(lfe_present > 0),
-            sample_rate: DTS_SAMPLE_RATES[sample_rate_code],
-            channel_layout: match audio_mode {
-                0 => Some(ac3_channel_layout(1, lfe_present > 0)),
-                1..=4 => Some(ac3_channel_layout(2, lfe_present > 0)),
-                5..=9 => Some(ac3_channel_layout(audio_mode - 2, lfe_present > 0)),
-                _ => None,
-            },
-            bit_rate_bps: DTS_BIT_RATES[bit_rate_code],
-        });
     }
 
-    None
+    Err(data.len())
+}
+
+/// The DTS core header whose sync word is at `start`: `Some(None)` when it
+/// starts no header, `None` when the header runs past the data.
+fn dts_header_at(data: &[u8], start: usize) -> Option<Option<DtsHeader>> {
+    let probe_end = (start + DTS_HEADER_PROBE_BYTES).min(data.len());
+    let normalized = normalize_dts_core_prefix(&data[start..probe_end])?;
+    let mut bits = BitReader::new(&normalized);
+    if bits.read_bits(32)? != DTS_SYNCWORD_CORE_BE {
+        return Some(None);
+    }
+    bits.read_bit()?; // normal frame flag
+    let deficit_samples = bits.read_bits(5)? as u8 + 1;
+    if deficit_samples != 32 {
+        return Some(None);
+    }
+    bits.skip_bits(1)?; // crc present
+    let npcmblocks = bits.read_bits(7)? as u8 + 1;
+    if (npcmblocks & 0x07) != 0 {
+        return Some(None);
+    }
+    let frame_size = bits.read_bits(14)? + 1;
+    if frame_size < 96 {
+        return Some(None);
+    }
+    let audio_mode = bits.read_bits(6)? as usize;
+    if audio_mode >= DTS_CHANNELS.len() {
+        return Some(None);
+    }
+    let sample_rate_code = bits.read_bits(4)? as usize;
+    if *DTS_SAMPLE_RATES.get(sample_rate_code)? == 0 {
+        return Some(None);
+    }
+    let bit_rate_code = bits.read_bits(5)? as usize;
+    if bit_rate_code >= DTS_BIT_RATES.len() {
+        return Some(None);
+    }
+    if bits.read_bit()? != 0 {
+        return Some(None);
+    }
+    bits.skip_bits(1 + 1 + 1 + 1 + 3 + 1 + 1)?; // drc/timestamp/aux/hdcd/ext/syncssf
+    let lfe_present = bits.read_bits(2)? as u8;
+    if lfe_present == 0x3 {
+        return Some(None);
+    }
+
+    Some(Some(DtsHeader {
+        channels: DTS_CHANNELS[audio_mode] + u8::from(lfe_present > 0),
+        sample_rate: DTS_SAMPLE_RATES[sample_rate_code],
+        channel_layout: match audio_mode {
+            0 => Some(ac3_channel_layout(1, lfe_present > 0)),
+            1..=4 => Some(ac3_channel_layout(2, lfe_present > 0)),
+            5..=9 => Some(ac3_channel_layout(audio_mode - 2, lfe_present > 0)),
+            _ => None,
+        },
+        bit_rate_bps: DTS_BIT_RATES[bit_rate_code],
+    }))
 }
 
 #[cfg(test)]
@@ -852,6 +917,61 @@ mod tests {
                 .as_deref(),
             Some("DTS")
         );
+    }
+
+    /// Buffers of noise with DTS core headers and extension substream sync
+    /// words planted in them, from a fixed seed.
+    fn planted_dts_buffers() -> Vec<Vec<u8>> {
+        let core = [
+            0x7f, 0xfe, 0x80, 0x01, 0xfc, 0x3c, 0x7d, 0xb2, 0x77, 0x00, 0x0d, 0x3b, 0x80, 0x09,
+            0xef, 0x7b,
+        ];
+        let mut state = 0x9E37_79B9_7F4A_7C15_u64;
+        let mut next = move || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state
+        };
+        (0..400)
+            .map(|_| {
+                let mut buffer: Vec<u8> = (0..384).map(|_| next() as u8).collect();
+                for _ in 0..next() % 12 {
+                    let at = next() as usize % buffer.len();
+                    let planted: &[u8] = match next() % 3 {
+                        0 => &core,
+                        1 => &core[..4],
+                        _ => &DTS_SYNCWORD_SUBSTREAM.to_be_bytes(),
+                    };
+                    let end = (at + planted.len()).min(buffer.len());
+                    buffer[at..end].copy_from_slice(&planted[..end - at]);
+                }
+                buffer
+            })
+            .collect()
+    }
+
+    #[test]
+    fn channel_scan_matches_a_fresh_search_from_every_offset() {
+        let (mut exss_hits, mut core_hits) = (0, 0);
+        for buffer in planted_dts_buffers() {
+            let mut scan = DtsChannelScan::new(&buffer);
+            for offset in 0..=buffer.len() {
+                let exss = detect_dts_channels_from_probe_bytes(&buffer[offset..]);
+                let core = find_dts_header(&buffer[offset..]).map(|h| i32::from(h.channels));
+                exss_hits += usize::from(exss.is_some());
+                core_hits += usize::from(exss.is_none() && core.is_some());
+                assert_eq!(scan.channels_at(offset), exss.or(core), "offset {offset}");
+            }
+            // Skipping offsets, as a pass over sync words does.
+            let mut scan = DtsChannelScan::new(&buffer);
+            for offset in (0..buffer.len()).step_by(37) {
+                let expected = detect_dts_channels_from_probe_bytes(&buffer[offset..])
+                    .or_else(|| find_dts_header(&buffer[offset..]).map(|h| i32::from(h.channels)));
+                assert_eq!(scan.channels_at(offset), expected, "offset {offset}");
+            }
+        }
+        assert!(exss_hits > 0 && core_hits > 0, "{exss_hits} {core_hits}");
     }
 
     #[test]
