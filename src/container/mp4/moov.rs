@@ -265,10 +265,12 @@ pub(super) fn parse_stsd(data: &[u8], track: &mut Mp4TrackMetadata) {
     }
     let offset = 8; // version/flags + entry_count
     if let Some(header) = read_box_header_from_bytes(&data[offset..]) {
-        let size = header.size as usize;
-        if size < header.header_size || offset + size > data.len() {
+        let Some(size) = usize::try_from(header.size)
+            .ok()
+            .filter(|size| *size >= header.header_size && *size <= data.len() - offset)
+        else {
             return;
-        }
+        };
         let sample_entry = &data[offset..offset + size];
         let payload = &sample_entry[header.header_size..];
         let fourcc = fourcc_to_string(header.name);

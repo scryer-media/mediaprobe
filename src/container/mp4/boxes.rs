@@ -4,7 +4,9 @@ use super::*;
 
 pub(super) fn for_each_mp4_box(mut data: &[u8], mut f: impl FnMut(Mp4BoxHeader, &[u8])) {
     while let Some(header) = read_box_header_from_bytes(data) {
-        let size = header.size as usize;
+        let Ok(size) = usize::try_from(header.size) else {
+            break;
+        };
         if size < header.header_size || size > data.len() {
             break;
         }
@@ -32,7 +34,9 @@ pub(super) fn walk_mp4_boxes<'a, FDescend, FVisit>(
         let mut children = Vec::new();
 
         while let Some(header) = read_box_header_from_bytes(current) {
-            let size = header.size as usize;
+            let Ok(size) = usize::try_from(header.size) else {
+                break;
+            };
             if size < header.header_size || size > current.len() {
                 break;
             }
