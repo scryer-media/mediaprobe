@@ -11,14 +11,15 @@ mod streams;
 mod udf_fixtures;
 
 use crate::warning;
-use std::collections::BTreeMap;
-use std::io::{Read, Seek, SeekFrom};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::hash::{Hash, Hasher};
+use std::io::{Seek, SeekFrom};
 use std::path::Path;
 use std::time::Instant;
 
 use crate::{
-    ANALYSIS_REVISION, AnalysisDetails, DiscMetadata, DiscSelection, DiscTitle, ProbeReport,
-    ProbeStatus, Provenance,
+    ANALYSIS_REVISION, AnalysisDetails, DiscMetadata, DiscSegment, DiscSelection, DiscTitle,
+    ProbeReport, ProbeStatus, Provenance,
 };
 
 use crate::source::{BoundedSource, Extent, ExtentSource, FileSource, MediaSource};
@@ -96,9 +97,7 @@ fn read_navigation(
         return Err(ImageError::Budget);
     }
     *remaining -= file.length;
-    let mut bytes = vec![0; file.length as usize];
-    ExtentSource::new(source, file.extents.clone())?.read_exact(&mut bytes)?;
-    Ok(bytes)
+    image::read_file(source, file)
 }
 fn inspect(
     source: &mut dyn MediaSource,
@@ -191,8 +190,8 @@ fn inspect(
                                         if u64::from(info.source_packets) * 192 <= file.length =>
                                     {
                                         (|| {
-                                            let streams = info.streams_for(segment)?;
                                             let range = info.packet_range(segment)?;
+                                            let streams = info.streams_in(&range)?;
                                             let length = u64::from(range.end - range.start) * 192;
                                             referenced = ImageFile {
                                                 length,
@@ -339,15 +338,13 @@ fn inspect(
     let mut failed_clips: BTreeMap<String, (ProbeStatus, String)> = BTreeMap::new();
     let mut selected_analysis = None;
     let mut resolved_title_id = None;
+    let mapped = mapped_titles(&disc);
     // Probe the chosen title first so other titles cannot consume its budget.
     let mut order: Vec<usize> = (0..disc.titles.len()).collect();
     order.sort_by_key(|index| {
-        let title = &disc.titles[*index];
         (
-            disc.selected_title_id.as_ref() != Some(&title.id),
-            !disc.selection.episode_mappings.iter().any(|mapping| {
-                mapping.disc_title_id == title.id || title.aliases.contains(&mapping.disc_title_id)
-            }),
+            disc.selected_title_id.as_ref() != Some(&disc.titles[*index].id),
+            !mapped[*index],
         )
     });
     for index in order {
@@ -362,9 +359,7 @@ fn inspect(
             continue;
         }
         let mut first: Option<AnalysisDetails> = None;
-        let mapped = disc.selection.episode_mappings.iter().any(|mapping| {
-            mapping.disc_title_id == title.id || title.aliases.contains(&mapping.disc_title_id)
-        });
+        let mapped = mapped[index];
         let could_replace_selection = disc.automatic_selection
             && selected_analysis
                 .as_ref()
@@ -532,14 +527,11 @@ fn inspect(
     if let Some(selected) = &selected_analysis {
         report = selected.report.clone();
     }
+    let titles_by_id = titles_by_id(&disc.titles);
     for mapping in &disc.selection.episode_mappings {
-        if disc
-            .titles
-            .iter()
-            .find(|title| {
-                title.id == mapping.disc_title_id || title.aliases.contains(&mapping.disc_title_id)
-            })
-            .is_none_or(|title| title.report.status != ProbeStatus::Complete)
+        if titles_by_id
+            .get(mapping.disc_title_id.as_str())
+            .is_none_or(|index| disc.titles[*index].report.status != ProbeStatus::Complete)
         {
             if report.status == ProbeStatus::Complete {
                 report.status = ProbeStatus::Incomplete;
@@ -639,18 +631,86 @@ fn same_stream_formats(a: &AnalysisDetails, b: &AnalysisDetails) -> bool {
 fn numeric_id(id: &str) -> u32 {
     id.parse().unwrap_or(u32::MAX)
 }
+/// Each id and alias, mapped to the first title that answers to it.
+fn titles_by_id(titles: &[DiscTitle]) -> HashMap<&str, usize> {
+    let mut by_id = HashMap::new();
+    for (index, title) in titles.iter().enumerate() {
+        for id in std::iter::once(&title.id).chain(&title.aliases) {
+            by_id.entry(id.as_str()).or_insert(index);
+        }
+    }
+    by_id
+}
+/// Whether a saved episode mapping names each title or one of its aliases.
+fn mapped_titles(disc: &DiscMetadata) -> Vec<bool> {
+    let mapped: HashSet<&str> = disc
+        .selection
+        .episode_mappings
+        .iter()
+        .map(|mapping| mapping.disc_title_id.as_str())
+        .collect();
+    disc.titles
+        .iter()
+        .map(|title| {
+            std::iter::once(&title.id)
+                .chain(&title.aliases)
+                .any(|id| mapped.contains(id.as_str()))
+        })
+        .collect()
+}
+/// A playback timeline that hashes the way `DiscSegment` compares: `-0.0`
+/// equals `0.0`. Timelines holding NaN equal nothing, so they have no key.
+struct Timeline<'a>(&'a [DiscSegment]);
+impl<'a> Timeline<'a> {
+    fn new(segments: &'a [DiscSegment]) -> Option<Self> {
+        (!segments.is_empty()
+            && segments
+                .iter()
+                .all(|segment| !segment.in_seconds.is_nan() && !segment.out_seconds.is_nan()))
+        .then_some(Self(segments))
+    }
+}
+impl PartialEq for Timeline<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+impl Eq for Timeline<'_> {}
+impl Hash for Timeline<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.len().hash(state);
+        for segment in self.0 {
+            segment.path.hash(state);
+            // Adding zero turns -0.0 into 0.0 and leaves every other value.
+            (segment.in_seconds + 0.0).to_bits().hash(state);
+            (segment.out_seconds + 0.0).to_bits().hash(state);
+            segment.angle.hash(state);
+            segment.sequence_id.hash(state);
+        }
+    }
+}
 fn deduplicate_titles(titles: &mut Vec<DiscTitle>) {
     titles.sort_by_key(|title| numeric_id(&title.id));
+    // The first title with each timeline keeps it; later ones become its aliases.
+    let mut first_with: HashMap<Timeline<'_>, usize> = HashMap::with_capacity(titles.len());
+    let keeper: Vec<usize> = titles
+        .iter()
+        .enumerate()
+        .map(|(index, title)| {
+            Timeline::new(&title.segments).map_or(index, |timeline| {
+                *first_with.entry(timeline).or_insert(index)
+            })
+        })
+        .collect();
+    drop(first_with);
+    let mut position = vec![0; titles.len()];
     let mut distinct: Vec<DiscTitle> = Vec::new();
-    for title in titles.drain(..) {
-        if !title.segments.is_empty()
-            && let Some(previous) = distinct
-                .iter_mut()
-                .find(|previous| previous.segments == title.segments)
-        {
-            previous.aliases.push(title.id);
-        } else {
+    for (index, title) in titles.drain(..).enumerate() {
+        if keeper[index] == index {
+            position[index] = distinct.len();
             distinct.push(title);
+        } else {
+            distinct[position[keeper[index]]].aliases.push(title.id);
         }
     }
     *titles = distinct;
@@ -736,6 +796,110 @@ mod tests {
             same_stream_formats(&first, &other),
             "clip duration and variable bitrate do not change stream formats"
         );
+    }
+    /// The pairwise form deduplication used before timelines were hashed.
+    fn deduplicate_pairwise(titles: &mut Vec<DiscTitle>) {
+        titles.sort_by_key(|title| numeric_id(&title.id));
+        let mut distinct: Vec<DiscTitle> = Vec::new();
+        for title in titles.drain(..) {
+            if !title.segments.is_empty()
+                && let Some(previous) = distinct
+                    .iter_mut()
+                    .find(|previous| previous.segments == title.segments)
+            {
+                previous.aliases.push(title.id);
+            } else {
+                distinct.push(title);
+            }
+        }
+        *titles = distinct;
+    }
+    fn generated_titles(seed: u32, count: usize) -> Vec<DiscTitle> {
+        let mut state = seed;
+        let mut next = |bound: u32| {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            state % bound
+        };
+        let seconds = [0.0, -0.0, 1.5, 2.0, f64::NAN, 600.25];
+        (0..count)
+            .map(|index| {
+                let segments = (0..next(4))
+                    .map(|_| DiscSegment {
+                        path: format!("BDMV/STREAM/{:05}.M2TS", next(3)),
+                        in_seconds: seconds[next(seconds.len() as u32) as usize],
+                        out_seconds: seconds[next(seconds.len() as u32) as usize],
+                        angle: next(2),
+                        sequence_id: [None, Some(0), Some(1)][next(3) as usize],
+                    })
+                    .collect();
+                DiscTitle {
+                    // Repeated and non-numeric ids exercise the stable sort.
+                    id: match next(10) {
+                        0 => format!("x{index}"),
+                        1 => format!("{:05}", next(8)),
+                        _ => format!("{:05}", index),
+                    },
+                    segments,
+                    ..Default::default()
+                }
+            })
+            .collect()
+    }
+    fn identities(titles: &[DiscTitle]) -> Vec<(String, Vec<String>)> {
+        titles
+            .iter()
+            .map(|title| (title.id.clone(), title.aliases.clone()))
+            .collect()
+    }
+    #[test]
+    fn hashed_deduplication_matches_pairwise_comparison() {
+        for seed in 1..=300_u32 {
+            let titles = generated_titles(seed.wrapping_mul(0x9e37_79b9), 1 + seed as usize % 60);
+            let mut hashed = titles.clone();
+            let mut pairwise = titles;
+            deduplicate_titles(&mut hashed);
+            deduplicate_pairwise(&mut pairwise);
+            assert_eq!(identities(&hashed), identities(&pairwise), "seed {seed}");
+        }
+    }
+    #[test]
+    fn mapping_lookups_match_a_scan_of_ids_and_aliases() {
+        let mut titles = generated_titles(0x51ed_270b, 200);
+        deduplicate_titles(&mut titles);
+        let mut disc = DiscMetadata {
+            titles,
+            ..Default::default()
+        };
+        let mut ids: Vec<String> = (0..20).map(|index| format!("{index:05}")).collect();
+        ids.extend(["x3".into(), "missing".into(), "00001".into()]);
+        disc.selection.episode_mappings = ids
+            .iter()
+            .map(|id| crate::DiscEpisodeMapping {
+                disc_title_id: id.clone(),
+                ..Default::default()
+            })
+            .collect();
+        let answers =
+            |title: &DiscTitle, id: &String| &title.id == id || title.aliases.contains(id);
+        let mapped = mapped_titles(&disc);
+        for (index, title) in disc.titles.iter().enumerate() {
+            let scanned = disc
+                .selection
+                .episode_mappings
+                .iter()
+                .any(|mapping| answers(title, &mapping.disc_title_id));
+            assert_eq!(mapped[index], scanned);
+        }
+        let by_id = titles_by_id(&disc.titles);
+        for id in &ids {
+            assert_eq!(
+                by_id.get(id.as_str()).copied(),
+                disc.titles.iter().position(|title| answers(title, id)),
+                "{id}"
+            );
+        }
     }
     #[test]
     fn selection_deduplicates_timelines_and_uses_numeric_ties() {

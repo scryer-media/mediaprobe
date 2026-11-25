@@ -114,6 +114,8 @@ warning_codes! {
     TS_STREAM_PROBE_BUDGET = "ts_stream_probe_budget";
     /// Transport stream enrichment ended before every requested fact was found.
     TS_STREAM_PROBE_INCOMPLETE = "ts_stream_probe_incomplete";
+    /// The transport stream declares more elementary streams than one probe reports.
+    TS_ELEMENTARY_STREAM_LIMIT = "ts_elementary_stream_limit";
     /// An identify-depth duration was taken from timestamps without the final
     /// frame's duration.
     CONTENT_PROBE_DURATION_ESTIMATE = "content_probe_duration_estimate";

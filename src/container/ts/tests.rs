@@ -270,7 +270,8 @@ fn detects_bluray_dvhs_packet_layout() {
         data[packet_idx * TS_DVHS_PACKET_SIZE + 4] = SYNC_BYTE;
     }
 
-    let layout = detect_ts_packet_layout(&mut std::io::Cursor::new(data)).unwrap();
+    let file_size = data.len() as u64;
+    let layout = detect_ts_packet_layout(&mut std::io::Cursor::new(data), file_size).unwrap();
     assert_eq!(layout.raw_packet_size, TS_DVHS_PACKET_SIZE);
     assert_eq!(layout.sync_offset, 4);
 }
@@ -403,5 +404,179 @@ fn truncated_supplementary_audio_descriptor_falls_back_without_panicking() {
     assert_eq!(
         extract_language(TrackKind::Audio, &descriptors),
         Some("eng".to_string())
+    );
+}
+
+fn psi_packets(pid: u16, section: &[u8]) -> Vec<u8> {
+    let mut payload = vec![0_u8];
+    payload.extend_from_slice(section);
+    let mut bytes = Vec::new();
+    for (index, chunk) in payload.chunks(TS_PACKET_SIZE - 4).enumerate() {
+        let start = if index == 0 { 0x40 } else { 0 };
+        let mut packet = [0xff_u8; TS_PACKET_SIZE];
+        packet[..4].copy_from_slice(&[SYNC_BYTE, start | (pid >> 8) as u8, pid as u8, 0x10]);
+        packet[4..4 + chunk.len()].copy_from_slice(chunk);
+        bytes.extend_from_slice(&packet);
+    }
+    bytes
+}
+
+fn section(table_id: u8, id: u16, body: &[u8]) -> Vec<u8> {
+    // Header after the length field (5 bytes), the body, then a CRC slot.
+    let length = 5 + body.len() + 4;
+    let mut section = vec![
+        table_id,
+        0xb0 | (length >> 8) as u8,
+        length as u8,
+        (id >> 8) as u8,
+        id as u8,
+        0xc1,
+        0,
+        0,
+    ];
+    section.extend_from_slice(body);
+    section.extend_from_slice(&[0; 4]);
+    section
+}
+
+/// A transport stream whose programs each declare as many streams as one PMT
+/// section holds.
+fn crowded_program_map(programs: u16) -> (Vec<u8>, usize) {
+    const PER_PROGRAM: u16 = 816;
+    let pat: Vec<u8> = (0..programs)
+        .flat_map(|program| {
+            let pmt = 0x1000 + program;
+            [0, (program + 1) as u8, 0xe0 | (pmt >> 8) as u8, pmt as u8]
+        })
+        .collect();
+    let mut bytes = psi_packets(PAT_PID, &section(0, 1, &pat));
+    let mut next_pid = 0x20_u16;
+    for program in 0..programs {
+        let mut body = vec![0xe1, 0x00, 0xf0, 0x00];
+        for _ in 0..PER_PROGRAM {
+            body.extend_from_slice(&[0x06, 0xe0 | (next_pid >> 8) as u8, next_pid as u8, 0xf0, 0]);
+            next_pid += 1;
+        }
+        let pmt = section(0x02, program + 1, &body);
+        assert_eq!(pmt.len(), 4096);
+        bytes.extend(psi_packets(0x1000 + program, &pmt));
+    }
+    (bytes, usize::from(programs * PER_PROGRAM))
+}
+
+#[test]
+fn a_crowded_program_map_reports_a_bounded_inventory() {
+    let (bytes, declared) = crowded_program_map(6);
+    assert!(declared > ELEMENTARY_STREAM_LIMIT);
+    let raw = parse_ts_source(&mut std::io::Cursor::new(bytes), ProbeDepth::Identify).unwrap();
+    assert_eq!(raw.tracks.len(), ELEMENTARY_STREAM_LIMIT);
+    let report = &raw.details.report;
+    assert_eq!(report.status, crate::ProbeStatus::Incomplete);
+    assert!(
+        report
+            .warnings
+            .iter()
+            .any(|warning| warning.code == warning::TS_ELEMENTARY_STREAM_LIMIT)
+    );
+    let reported: usize = raw
+        .details
+        .programs
+        .iter()
+        .map(|program| program.stream_ids.len())
+        .sum();
+    assert_eq!(reported, ELEMENTARY_STREAM_LIMIT);
+
+    // A map within the limit keeps every stream and adds no warning.
+    let (bytes, declared) = crowded_program_map(5);
+    assert!(declared <= ELEMENTARY_STREAM_LIMIT);
+    let raw = parse_ts_source(&mut std::io::Cursor::new(bytes), ProbeDepth::Identify).unwrap();
+    assert_eq!(raw.tracks.len(), declared);
+    assert!(
+        raw.details
+            .report
+            .warnings
+            .iter()
+            .all(|warning| warning.code != warning::TS_ELEMENTARY_STREAM_LIMIT)
+    );
+}
+
+#[test]
+fn short_streams_scan_for_timestamps_with_buffers_sized_to_the_file() {
+    // Reads and seeks the source sees, so a smaller buffer can be shown to
+    // leave them unchanged.
+    struct Metered {
+        input: std::io::Cursor<Vec<u8>>,
+        calls: Vec<(char, usize, usize)>,
+    }
+    impl Read for Metered {
+        fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+            let read = self.input.read(bytes)?;
+            self.calls.push(('r', bytes.len().min(1 << 20), read));
+            Ok(read)
+        }
+    }
+    impl Seek for Metered {
+        fn seek(&mut self, position: SeekFrom) -> std::io::Result<u64> {
+            let at = self.input.seek(position)?;
+            self.calls.push(('s', at as usize, 0));
+            Ok(at)
+        }
+    }
+    impl crate::source::MediaSource for Metered {
+        fn len(&self) -> u64 {
+            self.input.get_ref().len() as u64
+        }
+    }
+    let (bytes, _) = crowded_program_map(1);
+    let file_size = bytes.len() as u64;
+    let lookup = {
+        let mut lookup = [false; TS_PID_COUNT];
+        lookup[0x20] = true;
+        lookup
+    };
+    let layout = TsPacketLayout {
+        raw_packet_size: TS_PACKET_SIZE,
+        sync_offset: 0,
+    };
+    let run = |file_size: u64| {
+        let mut source = Metered {
+            input: std::io::Cursor::new(bytes.clone()),
+            calls: Vec::new(),
+        };
+        let mut file = std::io::BufReader::with_capacity(
+            READ_BUFFER_BYTES.min(file_size.saturating_add(1)) as usize,
+            &mut source,
+        );
+        let layout_found = detect_ts_packet_layout(&mut file, file_size).unwrap();
+        let pts = find_pts_near(
+            &mut file,
+            file_size,
+            0,
+            true,
+            &lookup,
+            FALLBACK_DURATION_PROBE_PACKETS,
+            layout,
+        );
+        drop(file);
+        (layout_found.raw_packet_size, pts, source.calls)
+    };
+    let (size, pts, sized) = run(file_size);
+    assert_eq!(size, TS_PACKET_SIZE);
+    assert_eq!(pts, None);
+    // An unknown, effectively unbounded size reproduces full-size buffers.
+    let (_, _, unbounded) = run(u64::MAX - 1);
+    let returned = |calls: &[(char, usize, usize)]| -> Vec<(char, usize)> {
+        calls
+            .iter()
+            .map(|(kind, at, read)| (*kind, if *kind == 's' { *at } else { *read }))
+            .collect()
+    };
+    assert_eq!(returned(&sized), returned(&unbounded));
+    // Every read asked for more than the file had left.
+    assert!(
+        sized
+            .iter()
+            .filter(|(kind, _, _)| *kind == 'r')
+            .all(|(_, asked, read)| asked > read)
     );
 }
