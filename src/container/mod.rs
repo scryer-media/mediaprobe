@@ -14,3 +14,12 @@ pub(crate) mod ogg;
 pub(crate) mod ps;
 pub(crate) mod realmedia;
 pub(crate) mod ts;
+
+#[cfg(test)]
+mod read_budget_tests;
+
+/// Tracks a container parser reports at most. Real files carry a few dozen;
+/// a header that declares more is cut here, with the probe marked
+/// incomplete, so a small header cannot make the probe build and enrich
+/// hundreds of thousands of tracks.
+pub(crate) const MAX_TRACKS: usize = 4096;

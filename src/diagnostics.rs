@@ -241,6 +241,9 @@ impl<R: MediaSource> MediaSource for TraceSource<R> {
     fn len(&self) -> u64 {
         self.inner.len()
     }
+    fn read_allowance(&self) -> u64 {
+        self.inner.read_allowance()
+    }
 }
 
 fn push_warning(result: &mut StructuralDiagnostics, warning: ProbeWarning) {

@@ -11,6 +11,13 @@ pub(crate) trait MediaSource: Read + Seek {
     fn exhausted(&self) -> bool {
         false
     }
+    /// Bytes the source may still read before a wrapping budget refuses the
+    /// next read; unbounded when no budget wraps it. Parsers size buffers
+    /// with it, through [`read_exact_vec`], so a declared length cannot make
+    /// them allocate more than the budget would ever let them fill.
+    fn read_allowance(&self) -> u64 {
+        u64::MAX
+    }
 }
 
 impl<T: MediaSource + ?Sized> MediaSource for &mut T {
@@ -20,6 +27,87 @@ impl<T: MediaSource + ?Sized> MediaSource for &mut T {
     fn exhausted(&self) -> bool {
         (**self).exhausted()
     }
+    fn read_allowance(&self) -> u64 {
+        (**self).read_allowance()
+    }
+}
+
+/// A buffered source may still hand out what it has buffered after the
+/// budget beneath it is spent.
+impl<R: MediaSource> MediaSource for io::BufReader<R> {
+    fn len(&self) -> u64 {
+        self.get_ref().len()
+    }
+    fn exhausted(&self) -> bool {
+        self.get_ref().exhausted()
+    }
+    fn read_allowance(&self) -> u64 {
+        self.get_ref()
+            .read_allowance()
+            .saturating_add(self.buffer().len() as u64)
+    }
+}
+
+/// Reads exactly `len` bytes into a new buffer, as `read_exact` into a
+/// buffer of that size would, without allocating more than the source's
+/// [`read_allowance`](MediaSource::read_allowance). When the allowance is
+/// smaller than `len`, the allowance is read and the read past it fails
+/// exactly as the full-sized read would have: the same bytes and reads are
+/// spent and the same error is returned.
+pub(crate) fn read_exact_vec<S: MediaSource + ?Sized>(
+    source: &mut S,
+    len: usize,
+) -> io::Result<Vec<u8>> {
+    let mut buffer = Vec::new();
+    read_exact_append(source, &mut buffer, len)?;
+    Ok(buffer)
+}
+
+/// [`read_exact_vec`] appending to `buffer`. On error `buffer` keeps only
+/// what it held before the call.
+pub(crate) fn read_exact_append<S: MediaSource + ?Sized>(
+    source: &mut S,
+    buffer: &mut Vec<u8>,
+    len: usize,
+) -> io::Result<()> {
+    let allowance = source.read_allowance();
+    read_exact_append_within(source, buffer, len, allowance)
+}
+
+/// [`read_exact_append`] for a reader that passes its reads through to a
+/// source whose [`read_allowance`](MediaSource::read_allowance) is
+/// `allowance`.
+pub(crate) fn read_exact_append_within<R: Read + ?Sized>(
+    reader: &mut R,
+    buffer: &mut Vec<u8>,
+    len: usize,
+    allowance: u64,
+) -> io::Result<()> {
+    let start = buffer.len();
+    let allowed = usize::try_from(allowance).map_or(len, |allowance| allowance.min(len));
+    buffer.resize(start + allowed, 0);
+    let result = reader.read_exact(&mut buffer[start..]).and_then(|()| {
+        if allowed == len {
+            return Ok(());
+        }
+        // The budget is now spent, so this read fails the way the rest of
+        // the full-sized read would have.
+        match reader.read(&mut [0_u8; 1]) {
+            Err(error) => Err(error),
+            Ok(0) => Err(io::ErrorKind::UnexpectedEof.into()),
+            Ok(_) => Err(io::Error::other("media read budget exhausted")),
+        }
+    });
+    if result.is_err() {
+        buffer.truncate(start);
+    }
+    result
+}
+
+/// `wanted`, held to what the source may still read, as a buffer capacity:
+/// for a reader that fills a buffer only as far as the data goes.
+pub(crate) fn budgeted_capacity<S: MediaSource + ?Sized>(source: &S, wanted: u64) -> usize {
+    usize::try_from(wanted.min(source.read_allowance())).unwrap_or(usize::MAX)
 }
 
 pub(crate) struct FileSource {
@@ -196,6 +284,9 @@ impl MediaSource for ExtentSource<'_> {
     fn len(&self) -> u64 {
         self.length
     }
+    fn read_allowance(&self) -> u64 {
+        self.source.read_allowance()
+    }
 }
 
 pub(crate) struct BoundedSource<R> {
@@ -268,6 +359,9 @@ impl<R: MediaSource> MediaSource for BoundedSource<R> {
     }
     fn exhausted(&self) -> bool {
         self.exhausted
+    }
+    fn read_allowance(&self) -> u64 {
+        self.remaining.min(self.inner.read_allowance())
     }
 }
 
@@ -388,6 +482,75 @@ mod tests {
             .unwrap();
         std::fs::rename(&replacement, &path).unwrap();
         assert!(!source.unchanged(&path).unwrap());
+    }
+
+    #[test]
+    fn budgeted_reads_match_a_full_sized_read() {
+        let data = (0..64_u8).collect::<Vec<_>>();
+        for file_len in [0, 1, 7, 16, 64] {
+            for budget in [0, 1, 5, 16, 40, 100] {
+                for io_limit in [0, 1, 2, 8] {
+                    for len in [0, 1, 6, 16, 50, 64, usize::MAX] {
+                        let case = (file_len, budget, io_limit, len);
+                        let source = || {
+                            io::BufReader::with_capacity(
+                                4,
+                                BoundedSource::new(
+                                    io::Cursor::new(data[..file_len].to_vec()),
+                                    budget,
+                                )
+                                .with_io_limit(io_limit),
+                            )
+                        };
+                        let mut bounded = source();
+                        let bounded_result = read_exact_vec(&mut bounded, len);
+                        if len == usize::MAX {
+                            // Far beyond any budget here: it fails without
+                            // allocating the declared length.
+                            assert!(bounded_result.is_err(), "{case:?}");
+                            continue;
+                        }
+                        let mut full = source();
+                        let mut buffer = vec![0; len];
+                        let full_result = full.read_exact(&mut buffer).map(|()| buffer);
+                        match (&full_result, &bounded_result) {
+                            (Ok(a), Ok(b)) => assert_eq!(a, b, "{case:?}"),
+                            (Err(a), Err(b)) => {
+                                assert_eq!(a.kind(), b.kind(), "{case:?}");
+                                assert_eq!(a.to_string(), b.to_string(), "{case:?}");
+                            }
+                            _ => panic!("{case:?}: {full_result:?} vs {bounded_result:?}"),
+                        }
+                        let (full, bounded) = (full.get_ref(), bounded.get_ref());
+                        assert_eq!(full.bytes_read, bounded.bytes_read, "{case:?}");
+                        assert_eq!(full.seeks, bounded.seeks, "{case:?}");
+                        assert_eq!(full.exhausted, bounded.exhausted, "{case:?}");
+                        assert_eq!(
+                            full.get_ref().position(),
+                            bounded.get_ref().position(),
+                            "{case:?}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn budgeted_reads_allocate_within_the_allowance() {
+        let mut source = BoundedSource::new(io::Cursor::new(vec![7; 32]), 4);
+        assert_eq!(source.read_allowance(), 4);
+        assert_eq!(budgeted_capacity(&source, 100), 4);
+        let mut buffer = vec![1, 2];
+        assert!(read_exact_append(&mut source, &mut buffer, 1 << 30).is_err());
+        assert_eq!(buffer, [1, 2]);
+        assert!(source.exhausted);
+        assert_eq!(source.bytes_read, 4);
+        let mut source = BoundedSource::new(io::Cursor::new(vec![7; 32]), 4);
+        read_exact_append(&mut source, &mut buffer, 3).unwrap();
+        assert_eq!(buffer, [1, 2, 7, 7, 7]);
+        assert_eq!(budgeted_capacity(&source, 100), 1);
+        assert_eq!(io::Cursor::new(vec![0; 4]).read_allowance(), u64::MAX);
     }
 
     #[test]

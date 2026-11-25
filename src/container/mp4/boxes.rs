@@ -19,6 +19,26 @@ pub(super) fn for_each_mp4_box(mut data: &[u8], mut f: impl FnMut(Mp4BoxHeader, 
     }
 }
 
+/// The boxes of one level in order, each with its payload, stopping at the
+/// first header that does not fit.
+fn level_boxes(mut current: &[u8]) -> impl Iterator<Item = (Mp4BoxHeader, &[u8])> {
+    std::iter::from_fn(move || {
+        let header = read_box_header_from_bytes(current)?;
+        let size = usize::try_from(header.size).ok()?;
+        if size < header.header_size || size > current.len() {
+            return None;
+        }
+        let payload = &current[header.header_size..size];
+        current = &current[size..];
+        Some((header, payload))
+    })
+}
+
+/// Visits every box of a level, then walks into each box `should_descend`
+/// opens, in order, depth first. `should_descend` is asked about a level's
+/// boxes only after all of them are visited, so it must not depend on what
+/// `visit` saw. The walk holds one cursor per open level, never a list of a
+/// level's boxes, so a level of many small boxes costs no memory.
 pub(super) fn walk_mp4_boxes<'a, FDescend, FVisit>(
     data: &'a [u8],
     max_depth: usize,
@@ -28,37 +48,30 @@ pub(super) fn walk_mp4_boxes<'a, FDescend, FVisit>(
     FDescend: FnMut(Mp4BoxHeader, &'a [u8], usize) -> Option<&'a [u8]>,
     FVisit: FnMut(Mp4BoxHeader, &'a [u8], usize),
 {
-    let mut stack = vec![(data, 0_usize)];
-
-    while let Some((mut current, depth)) = stack.pop() {
-        let mut children = Vec::new();
-
-        while let Some(header) = read_box_header_from_bytes(current) {
-            let Ok(size) = usize::try_from(header.size) else {
-                break;
-            };
-            if size < header.header_size || size > current.len() {
-                break;
-            }
-
-            let payload = &current[header.header_size..size];
+    let mut visit_level = |level: &'a [u8], depth: usize| {
+        for (header, payload) in level_boxes(level) {
             visit(header, payload, depth);
-
-            if depth < max_depth
-                && let Some(child_payload) = should_descend(header, payload, depth)
-                && !child_payload.is_empty()
-            {
-                children.push((child_payload, depth + 1));
-            }
-
-            if size == current.len() {
-                break;
-            }
-            current = &current[size..];
         }
-
-        for child in children.into_iter().rev() {
-            stack.push(child);
+    };
+    visit_level(data, 0);
+    let mut open = vec![(level_boxes(data), 0_usize)];
+    while let Some((boxes, depth)) = open.last_mut() {
+        let depth = *depth;
+        let child = (depth < max_depth)
+            .then(|| {
+                boxes.find_map(|(header, payload)| {
+                    should_descend(header, payload, depth).filter(|child| !child.is_empty())
+                })
+            })
+            .flatten();
+        match child {
+            Some(child) => {
+                visit_level(child, depth + 1);
+                open.push((level_boxes(child), depth + 1));
+            }
+            None => {
+                open.pop();
+            }
         }
     }
 }

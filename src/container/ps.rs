@@ -26,16 +26,14 @@ struct PesStream {
 
 pub(crate) fn parse_ps(source: &mut dyn MediaSource) -> Result<RawContainer, ProbeError> {
     let length = source.len();
-    let mut prefix = vec![0; length.min(PREFIX_BYTES) as usize];
     source.seek(SeekFrom::Start(0))?;
-    source.read_exact(&mut prefix)?;
+    let prefix = crate::source::read_exact_vec(source, length.min(PREFIX_BYTES) as usize)?;
     let mut streams = BTreeMap::new();
     scan_pes(&prefix, &mut streams, true);
     let tail_start = length.saturating_sub(TAIL_BYTES).max(prefix.len() as u64);
     if tail_start < length {
         source.seek(SeekFrom::Start(tail_start))?;
-        let mut tail = vec![0; (length - tail_start) as usize];
-        source.read_exact(&mut tail)?;
+        let tail = crate::source::read_exact_vec(source, (length - tail_start) as usize)?;
         scan_pes(&tail, &mut streams, false);
     }
     let mut tracks = Vec::new();

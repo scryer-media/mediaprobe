@@ -56,8 +56,8 @@ pub(crate) fn parse_mpeg(source: &mut dyn MediaSource) -> Result<RawContainer, P
 
 fn parse(source: &mut dyn MediaSource, avc: bool) -> Result<RawContainer, ProbeError> {
     source.seek(SeekFrom::Start(0))?;
-    let mut data = vec![0; source.len().min(LIMIT) as usize];
-    source.read_exact(&mut data)?;
+    let prefix_len = source.len().min(LIMIT) as usize;
+    let data = crate::source::read_exact_vec(source, prefix_len)?;
     let codec = if avc {
         if !sniff_h264(&data) {
             return Err(ProbeError::Malformed(

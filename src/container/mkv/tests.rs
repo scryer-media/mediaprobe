@@ -1,7 +1,7 @@
 use super::*;
 use crate::Codec;
 use crate::ProbeError;
-use std::io::Cursor;
+use std::io::{Cursor, Seek};
 
 fn make_ebml_size(size: u64) -> Vec<u8> {
     for len in 1..=8 {
@@ -375,6 +375,87 @@ fn unique_ac3_prefix_channel_fallback_fills_missing_channels() {
     apply_unique_audio_prefix_channel_fallback(&mut scanner, &mut tracks);
 
     assert_eq!(tracks[0].channels, Some(6));
+}
+
+#[test]
+fn prefix_channel_fallback_counts_codecs_once_with_the_same_result() {
+    /// The fallback as it was when it counted a codec's tracks again for
+    /// every track.
+    fn recounting_reference<R: crate::source::MediaSource>(
+        scanner: &mut MkvRawScanner<R>,
+        tracks: &mut [RawTrack],
+    ) {
+        let count = |tracks: &[RawTrack], codec: &Codec| {
+            tracks
+                .iter()
+                .filter(|t| t.kind == TrackKind::Audio && t.codec_name.as_ref() == Some(codec))
+                .count()
+        };
+        for index in 0..tracks.len() {
+            let Some(codec_name) = tracks[index].codec_name.clone() else {
+                continue;
+            };
+            if tracks[index].kind != TrackKind::Audio
+                || !matches!(codec_name, Codec::Ac3 | Codec::Eac3 | Codec::Dts)
+                || tracks[index].channels.is_some()
+                || count(tracks, &codec_name) != 1
+            {
+                continue;
+            }
+            if let Ok(Some(channels)) = scanner
+                .scan_prefix_for_audio_channels(&codec_name, MKV_CHAPTER_SCAN_MAX_BYTES as u64)
+            {
+                tracks[index].channels =
+                    merge_scanned_audio_channels(tracks[index].channels, Some(channels));
+            }
+        }
+    }
+    let bytes = vec![
+        0x1A, 0x45, 0xDF, 0xA3, 0x0B, 0x77, 0x0A, 0xA2, 0x1C, 0x30, 0x43, 0x0B, 0x77, 0x9A, 0xE2,
+        0x1C, 0x30, 0xE1,
+    ];
+    let codecs = ["ac3", "eac3", "dts", "aac", "opus"];
+    let mut state = 0x9e37_79b9_u32;
+    let mut next = || {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        state as usize
+    };
+    let mut filled = 0;
+    for _ in 0..300 {
+        let mut tracks = (0..next() % 7)
+            .map(|_| {
+                let mut track = audio_test_track(
+                    codecs[next() % codecs.len()],
+                    (next() % 3 == 0).then_some(2),
+                );
+                if next() % 5 == 0 {
+                    track.kind = TrackKind::Video;
+                }
+                if next() % 9 == 0 {
+                    track.codec_name = None;
+                }
+                track
+            })
+            .collect::<Vec<_>>();
+        let mut expected = tracks.clone();
+        recounting_reference(
+            &mut MkvRawScanner::new(Cursor::new(bytes.clone())).unwrap(),
+            &mut expected,
+        );
+        apply_unique_audio_prefix_channel_fallback(
+            &mut MkvRawScanner::new(Cursor::new(bytes.clone())).unwrap(),
+            &mut tracks,
+        );
+        let channels = |tracks: &[RawTrack]| tracks.iter().map(|t| t.channels).collect::<Vec<_>>();
+        assert_eq!(channels(&tracks), channels(&expected));
+        filled += expected.iter().filter(|t| t.channels == Some(6)).count();
+    }
+    assert!(
+        filled > 0,
+        "some generated tracks must take scanned channels"
+    );
 }
 
 #[test]
@@ -757,6 +838,11 @@ fn observed_frame_timing_reads_headers_with_a_fixed_sample_budget() {
     impl Seek for Metered {
         fn seek(&mut self, position: SeekFrom) -> std::io::Result<u64> {
             self.inner.seek(position)
+        }
+    }
+    impl crate::source::MediaSource for Metered {
+        fn len(&self) -> u64 {
+            self.inner.get_ref().len() as u64
         }
     }
     let payload = vec![0; 64 * 1024];
@@ -1294,4 +1380,48 @@ fn audio_channel_pass_matches_searching_afresh_from_each_sync_word() {
         }
     }
     assert!(found > 0);
+}
+
+#[test]
+fn a_matroska_file_past_the_track_limit_keeps_the_first_tracks_and_says_so() {
+    let mkv = |count: u64| {
+        let entries: Vec<u8> = (1..=count)
+            .flat_map(|number| {
+                let entry = [
+                    make_uint_element(&[0xd7], number),
+                    make_uint_element(&[0x83], 0x11),
+                    make_ebml_element(&[0x86], b"S_TEXT/UTF8"),
+                ]
+                .concat();
+                make_ebml_element(&[0xae], &entry)
+            })
+            .collect();
+        let tracks = make_ebml_element(&[0x16, 0x54, 0xae, 0x6b], &entries);
+        [
+            make_ebml_element(&[0x1a, 0x45, 0xdf, 0xa3], &[]),
+            make_ebml_element(&[0x18, 0x53, 0x80, 0x67], &tracks),
+        ]
+        .concat()
+    };
+    let limit = crate::container::MAX_TRACKS as u64;
+    for profile in [ProbeDepth::Quick, ProbeDepth::Full] {
+        let within = parse_mkv_source(&mut Cursor::new(mkv(limit)), profile).unwrap();
+        assert_eq!(within.tracks.len(), crate::container::MAX_TRACKS);
+        assert!(
+            within
+                .details
+                .report
+                .warnings
+                .iter()
+                .all(|warning| !warning.message.contains("track inventory stops"))
+        );
+        let past = parse_mkv_source(&mut Cursor::new(mkv(limit + 1)), profile).unwrap();
+        assert_eq!(past.tracks.len(), crate::container::MAX_TRACKS);
+        assert_eq!(past.details.report.status, crate::ProbeStatus::Incomplete);
+        assert!(past.details.report.budget_exhausted);
+        assert!(past.details.report.warnings.iter().any(|warning| {
+            warning.code == warning::MKV_INVENTORY_INCOMPLETE
+                && warning.message.contains("track inventory stops")
+        }));
+    }
 }

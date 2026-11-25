@@ -417,6 +417,10 @@ pub fn probe_path(
 /// using the reader afterwards. Disc images are read only by [`probe_path`]
 /// and [`probe_disc`].
 ///
+/// The probe learns the source's length with one seek to its end before the
+/// budgets in `options` apply; that seek is not counted against them or in
+/// the report.
+///
 /// # Errors
 ///
 /// As [`probe_path`], without [`ProbeError::SourceChanged`]: the caller owns

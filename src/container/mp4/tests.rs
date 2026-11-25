@@ -1,5 +1,6 @@
 use super::*;
 use crate::Codec;
+use std::io::Seek;
 
 /// Lightweight counters for parser I/O during bounded probing.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -40,6 +41,12 @@ impl<R: Seek> Seek for TrackedReader<R> {
         let next = self.inner.seek(pos)?;
         self.stats.seeks = self.stats.seeks.saturating_add(1);
         Ok(next)
+    }
+}
+
+impl<R: crate::source::MediaSource> crate::source::MediaSource for TrackedReader<R> {
+    fn len(&self) -> u64 {
+        self.inner.len()
     }
 }
 
@@ -321,7 +328,7 @@ fn av1_mp4_enrichment_reads_metadata_after_the_first_sample() {
     let mut report = crate::ProbeReport::default();
     scan_mp4_sample_probes(
         &mut Cursor::new(bytes),
-        &context,
+        &TrackLookup::new(&context.tracks),
         &mut tracks,
         ProbeDepth::Full,
         &mut report,
@@ -1229,4 +1236,206 @@ fn sample_entry_size_past_the_address_space_is_skipped() {
     let mut walked = 0;
     for_each_mp4_box(&stsd[8..], |_, _| walked += 1);
     assert_eq!(walked, 0);
+}
+
+/// A movie of `count` video tracks, each just a track header with id
+/// `first_id + index` and a video handler.
+fn mov_with_video_tracks(count: u32, first_id: impl Fn(u32) -> u32) -> Vec<u8> {
+    let traks = (0..count)
+        .flat_map(|index| {
+            let mut tkhd = vec![0_u8; 84];
+            tkhd[3] = MOV_TKHD_FLAG_ENABLED as u8;
+            tkhd[12..16].copy_from_slice(&first_id(index).to_be_bytes());
+            let mdia = make_box(b"mdia", &make_hdlr_box(0, b"vide", [0; 3], b"\0"));
+            make_box(b"trak", &[make_box(b"tkhd", &tkhd), mdia].concat())
+        })
+        .collect::<Vec<_>>();
+    let mut mvhd = [0; 24];
+    mvhd[2] = 1000;
+    [
+        make_box(b"ftyp", b"isom\0\0\0\0isom"),
+        make_box(b"moov", &[full_box(b"mvhd", 0, &mvhd), traks].concat()),
+    ]
+    .concat()
+}
+
+#[test]
+fn a_movie_past_the_track_limit_keeps_the_first_tracks_and_says_so() {
+    let small = parse_mp4_source(
+        &mut Cursor::new(mov_with_video_tracks(3, |index| index + 1)),
+        "mp4",
+        ProbeDepth::Full,
+    )
+    .unwrap();
+    assert_eq!(small.tracks.len(), 3);
+    assert!(
+        small
+            .details
+            .report
+            .warnings
+            .iter()
+            .all(|warning| warning.code != warning::MP4_CONTAINER_SCAN_BUDGET)
+    );
+
+    let count = super::super::MAX_TRACKS as u32 + 500;
+    let raw = parse_mp4_source(
+        &mut Cursor::new(mov_with_video_tracks(count, |index| count - index)),
+        "mp4",
+        ProbeDepth::Full,
+    )
+    .unwrap();
+    assert_eq!(raw.tracks.len(), super::super::MAX_TRACKS);
+    assert_eq!(
+        raw.tracks[0].metadata.id.as_deref(),
+        Some(&*count.to_string())
+    );
+    let report = &raw.details.report;
+    assert_eq!(report.status, crate::ProbeStatus::Incomplete);
+    assert!(report.budget_exhausted);
+    assert!(
+        report
+            .warnings
+            .iter()
+            .any(|warning| warning.code == warning::MP4_CONTAINER_SCAN_BUDGET)
+    );
+}
+
+#[test]
+fn track_lookup_finds_the_first_track_of_each_id() {
+    let mut context = MediaContext::default();
+    for id in [Some(3), None, Some(1), Some(3), None, Some(2)] {
+        let track = mp4parse::Track {
+            track_id: id,
+            track_type: if id == Some(2) {
+                TrackType::Audio
+            } else {
+                TrackType::Video
+            },
+            ..Default::default()
+        };
+        context.tracks.push(track).unwrap();
+    }
+    let lookup = TrackLookup::new(&context.tracks);
+    for id in [None, Some(1), Some(2), Some(3), Some(4)] {
+        let expected = context.tracks.iter().position(|track| track.track_id == id);
+        assert_eq!(lookup.position(id), expected, "{id:?}");
+        assert_eq!(
+            lookup.by_id(id).map(|track| track as *const _),
+            expected.map(|index| &context.tracks[index] as *const _)
+        );
+    }
+    assert!(std::ptr::eq(
+        lookup.first_audio().unwrap(),
+        &context.tracks[5]
+    ));
+}
+
+#[test]
+fn box_walk_with_level_cursors_visits_as_the_queued_walk_did() {
+    /// The walk as it was when it queued every child of a level before
+    /// walking into any of them.
+    fn queued_walk<'a>(
+        data: &'a [u8],
+        max_depth: usize,
+        mut should_descend: impl FnMut(Mp4BoxHeader, &'a [u8], usize) -> Option<&'a [u8]>,
+        mut visit: impl FnMut(Mp4BoxHeader, &'a [u8], usize),
+    ) {
+        let mut stack = vec![(data, 0_usize)];
+        while let Some((mut current, depth)) = stack.pop() {
+            let mut children = Vec::new();
+            while let Some(header) = read_box_header_from_bytes(current) {
+                let Ok(size) = usize::try_from(header.size) else {
+                    break;
+                };
+                if size < header.header_size || size > current.len() {
+                    break;
+                }
+                let payload = &current[header.header_size..size];
+                visit(header, payload, depth);
+                if depth < max_depth
+                    && let Some(child) = should_descend(header, payload, depth)
+                    && !child.is_empty()
+                {
+                    children.push((child, depth + 1));
+                }
+                if size == current.len() {
+                    break;
+                }
+                current = &current[size..];
+            }
+            for child in children.into_iter().rev() {
+                stack.push(child);
+            }
+        }
+    }
+    let names: [&[u8; 4]; 7] = [
+        b"moov", b"udta", b"trak", b"meta", b"tref", b"chpl", b"free",
+    ];
+    let mut state = 0x1234_5678_u32;
+    let mut next = move || {
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        state as usize
+    };
+    fn tree(next: &mut impl FnMut() -> usize, names: &[&[u8; 4]], depth: usize) -> Vec<u8> {
+        let mut level = Vec::new();
+        for _ in 0..next() % 5 {
+            let name = names[next() % names.len()];
+            let payload = if depth < 6 && !next().is_multiple_of(3) {
+                let mut children = tree(next, names, depth + 1);
+                if name == b"meta" {
+                    children.splice(0..0, [0; 4]);
+                }
+                children
+            } else {
+                (0..next() % 6).map(|_| next() as u8).collect()
+            };
+            level.extend(make_box(name, &payload));
+        }
+        match next() % 8 {
+            0 => level.extend([0, 0, 0, 3, b'b', b'a']),
+            1 => level.truncate(level.len().saturating_sub(next() % 4)),
+            _ => {}
+        }
+        level
+    }
+    let descend = |header: Mp4BoxHeader, payload: &[u8], _depth: usize| -> Option<usize> {
+        match &header.name {
+            b"moov" | b"udta" | b"trak" | b"tref" => Some(0),
+            b"meta" => (payload.len() >= 4).then_some(4),
+            _ => None,
+        }
+    };
+    let mut nested = 0;
+    for _ in 0..2_000 {
+        let data = tree(&mut next, &names, 0);
+        let base = data.as_ptr() as usize;
+        for max_depth in [0, 2, MP4_BOX_MAX_DEPTH] {
+            let walk = |queued: bool| {
+                let mut visits = Vec::new();
+                let should_descend = |header: Mp4BoxHeader, payload, depth| {
+                    descend(header, payload, depth).map(|skip| &payload[skip..])
+                };
+                let visit = |header: Mp4BoxHeader, payload: &[u8], depth| {
+                    visits.push((
+                        header.name,
+                        payload.as_ptr() as usize - base,
+                        payload.len(),
+                        depth,
+                    ));
+                };
+                if queued {
+                    queued_walk(&data, max_depth, should_descend, visit);
+                } else {
+                    walk_mp4_boxes(&data, max_depth, should_descend, visit);
+                }
+                visits
+            };
+            let expected = walk(true);
+            nested += expected.iter().filter(|visit| visit.3 >= 2).count();
+            assert_eq!(walk(false), expected, "{data:02x?} to depth {max_depth}");
+        }
+    }
+    assert!(nested > 0, "the generated trees must nest");
 }
