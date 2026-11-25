@@ -11,9 +11,10 @@
 # CORPUS_DIR/<target>/. OUT_DIR/summary/<target>.json records executions,
 # coverage, new corpus entries and findings.
 #
-# The script exits 0 when the fuzzing ran, findings or not: the workflow's
-# verdict job fails the run once every target has finished. It exits non-zero
-# only when the fuzzing could not run (a build failure, a missing tool).
+# The script exits 0 when every target fuzzed to its time limit, findings or
+# not: the workflow's verdict job fails the run once every target has
+# finished. It exits non-zero when the fuzzing could not run (a build
+# failure, a missing tool) or a target stopped before its time limit.
 #
 # Limits, per input: RSS_LIMIT_MB (default 1024) of resident memory,
 # MALLOC_LIMIT_MB (default 256) in one allocation, TIMEOUT (default 10)
@@ -76,12 +77,23 @@ for target in "$@"; do
   pids+=("$!")
 done
 
+# In fork mode libFuzzer exits with the status of the last job it ran, so a
+# target that fuzzed to its time limit exits non-zero when that job ended in
+# an ignored out-of-memory (71), timeout (70) or crash. Such a run logs that
+# it reached the limit and then the status it exits with; any other non-zero
+# exit means the target could not run or stopped early, and its log says why.
+ran_to_time_limit() {
+  local log="$1" code="$2"
+  grep -qE '^INFO: fuzzed for [0-9]+ seconds, wrapping up soon$' "$log" &&
+    [ "$(sed -nE 's/^INFO: exiting: ([0-9]+) time: [0-9]+s$/\1/p' "$log" | tail -n 1)" = "$code" ]
+}
+
 status=0
 for i in "${!pids[@]}"; do
-  if ! wait "${pids[$i]}"; then
-    # Fork mode with every ignore flag returns non-zero only when the
-    # fuzzer itself could not run; the log says why.
-    echo "::warning::${targets[$i]} exited non-zero" >&2
+  code=0
+  wait "${pids[$i]}" || code=$?
+  if [ "$code" -ne 0 ] && ! ran_to_time_limit "$out/logs/${targets[$i]}.log" "$code"; then
+    echo "::warning::${targets[$i]} exited $code before its time limit" >&2
     status=1
   fi
 done
