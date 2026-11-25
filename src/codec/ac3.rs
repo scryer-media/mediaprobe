@@ -63,10 +63,17 @@ pub(crate) fn ac3_channel_layout(acmod: usize, lfe: bool) -> &'static str {
 }
 
 pub(crate) fn find_ac3_header(data: &[u8]) -> Option<Ac3Header> {
-    if data.len() < 7 {
-        return None;
+    find_ac3_header_from(data, 0).ok().map(|(_, header)| header)
+}
+
+/// The first AC-3 header at or after `from` and its offset, or the
+/// offset at which the search gave up. Every start from `from` up to
+/// that offset gives the same answer.
+pub(crate) fn find_ac3_header_from(data: &[u8], from: usize) -> Result<(usize, Ac3Header), usize> {
+    if data.len().saturating_sub(from) < 7 {
+        return Err(data.len());
     }
-    let mut cursor = 0;
+    let mut cursor = from;
     while let Some(candidate) = scan::find_audio_sync_candidate(data, cursor) {
         if candidate.kind != scan::AudioSyncKind::Ac3 {
             cursor = candidate.offset + 1;
@@ -74,54 +81,72 @@ pub(crate) fn find_ac3_header(data: &[u8]) -> Option<Ac3Header> {
         }
         let start = candidate.offset;
         if start + 7 > data.len() {
-            return None;
+            return Err(start);
         }
         cursor = start + 1;
-
-        let bsid = data[start + 5] >> 3;
-        if bsid > 10 {
-            continue;
+        match ac3_header_at(data, start) {
+            Some(Some(header)) => return Ok((start, header)),
+            Some(None) => {}
+            None => return Err(start),
         }
-
-        let fscod = (data[start + 4] >> 6) as usize;
-        let frame_size_code = (data[start + 4] & 0x3F) as usize;
-        if fscod == 3 || frame_size_code > 37 {
-            continue;
-        }
-
-        let mut bits = BitReader::new(&data[start + 6..]);
-        let acmod = bits.read_bits(3)? as usize;
-        if acmod == 2 {
-            bits.skip_bits(2)?;
-        } else {
-            if (acmod & 1) != 0 && acmod != 1 {
-                bits.skip_bits(2)?;
-            }
-            if (acmod & 4) != 0 {
-                bits.skip_bits(2)?;
-            }
-        }
-        let lfe_on = bits.read_bit()? != 0;
-        let sr_shift = usize::from(bsid.saturating_sub(8));
-        let bit_rate_code = frame_size_code >> 1;
-
-        return Some(Ac3Header {
-            channels: AC3_CHANNELS_BY_ACMOD[acmod] + u8::from(lfe_on),
-            sample_rate: AC3_SAMPLE_RATES[fscod] >> sr_shift,
-            channel_layout: ac3_channel_layout(acmod, lfe_on),
-            bit_rate_bps: Some((AC3_BITRATES_KBPS[bit_rate_code] * 1000) >> sr_shift),
-            bitrate_is_estimate: false,
-        });
     }
 
-    None
+    Err(data.len())
+}
+
+/// The AC-3 header whose sync word is at `start`: `Some(None)` when it
+/// starts no header, `None` when the header runs past the data.
+fn ac3_header_at(data: &[u8], start: usize) -> Option<Option<Ac3Header>> {
+    let bsid = data[start + 5] >> 3;
+    if bsid > 10 {
+        return Some(None);
+    }
+
+    let fscod = (data[start + 4] >> 6) as usize;
+    let frame_size_code = (data[start + 4] & 0x3F) as usize;
+    if fscod == 3 || frame_size_code > 37 {
+        return Some(None);
+    }
+
+    let mut bits = BitReader::new(&data[start + 6..]);
+    let acmod = bits.read_bits(3)? as usize;
+    if acmod == 2 {
+        bits.skip_bits(2)?;
+    } else {
+        if (acmod & 1) != 0 && acmod != 1 {
+            bits.skip_bits(2)?;
+        }
+        if (acmod & 4) != 0 {
+            bits.skip_bits(2)?;
+        }
+    }
+    let lfe_on = bits.read_bit()? != 0;
+    let sr_shift = usize::from(bsid.saturating_sub(8));
+    let bit_rate_code = frame_size_code >> 1;
+
+    Some(Some(Ac3Header {
+        channels: AC3_CHANNELS_BY_ACMOD[acmod] + u8::from(lfe_on),
+        sample_rate: AC3_SAMPLE_RATES[fscod] >> sr_shift,
+        channel_layout: ac3_channel_layout(acmod, lfe_on),
+        bit_rate_bps: Some((AC3_BITRATES_KBPS[bit_rate_code] * 1000) >> sr_shift),
+        bitrate_is_estimate: false,
+    }))
 }
 
 pub(crate) fn find_eac3_header(data: &[u8]) -> Option<Ac3Header> {
-    if data.len() < 6 {
-        return None;
+    find_eac3_header_from(data, 0)
+        .ok()
+        .map(|(_, header)| header)
+}
+
+/// The first E-AC-3 header at or after `from` and its offset, or the
+/// offset at which the search gave up. Every start from `from` up to
+/// that offset gives the same answer.
+pub(crate) fn find_eac3_header_from(data: &[u8], from: usize) -> Result<(usize, Ac3Header), usize> {
+    if data.len().saturating_sub(from) < 6 {
+        return Err(data.len());
     }
-    let mut cursor = 0;
+    let mut cursor = from;
     while let Some(candidate) = scan::find_audio_sync_candidate(data, cursor) {
         if candidate.kind != scan::AudioSyncKind::Ac3 {
             cursor = candidate.offset + 1;
@@ -129,56 +154,65 @@ pub(crate) fn find_eac3_header(data: &[u8]) -> Option<Ac3Header> {
         }
         let start = candidate.offset;
         if start + 6 > data.len() {
-            return None;
+            return Err(start);
         }
         cursor = start + 1;
-
-        let bsid = data[start + 5] >> 3;
-        if !(11..=16).contains(&bsid) {
-            continue;
+        match eac3_header_at(data, start) {
+            Some(Some(header)) => return Ok((start, header)),
+            Some(None) => {}
+            None => return Err(start),
         }
-
-        let mut bits = BitReader::new(&data[start + 2..]);
-        let frame_type = bits.read_bits(2)?;
-        if frame_type == 1 || frame_type == 3 {
-            continue;
-        }
-        if bits.read_bits(3)? != 0 {
-            continue;
-        }
-        let frame_size = (bits.read_bits(11)? + 1) * 2;
-
-        let fscod = bits.read_bits(2)? as usize;
-        let (sample_rate, num_blocks) = if fscod == 3 {
-            let sample_rate = match bits.read_bits(2)? {
-                0 => 24_000,
-                1 => 22_050,
-                2 => 16_000,
-                _ => continue,
-            };
-            (sample_rate, 6)
-        } else {
-            let sample_rate = *AC3_SAMPLE_RATES.get(fscod)?;
-            if sample_rate == 0 {
-                continue;
-            }
-            let num_blocks = *EAC3_BLOCKS.get(bits.read_bits(2)? as usize)?;
-            (sample_rate, num_blocks)
-        };
-
-        let acmod = bits.read_bits(3)? as usize;
-        let lfe_on = bits.read_bit()? != 0;
-
-        return Some(Ac3Header {
-            channels: AC3_CHANNELS_BY_ACMOD[acmod] + u8::from(lfe_on),
-            bit_rate_bps: Some((8 * frame_size * sample_rate) / (num_blocks * 256)),
-            sample_rate,
-            channel_layout: ac3_channel_layout(acmod, lfe_on),
-            bitrate_is_estimate: true,
-        });
     }
 
-    None
+    Err(data.len())
+}
+
+/// The E-AC-3 header whose sync word is at `start`: `Some(None)` when it
+/// starts no header, `None` when the header runs past the data.
+fn eac3_header_at(data: &[u8], start: usize) -> Option<Option<Ac3Header>> {
+    let bsid = data[start + 5] >> 3;
+    if !(11..=16).contains(&bsid) {
+        return Some(None);
+    }
+
+    let mut bits = BitReader::new(&data[start + 2..]);
+    let frame_type = bits.read_bits(2)?;
+    if frame_type == 1 || frame_type == 3 {
+        return Some(None);
+    }
+    if bits.read_bits(3)? != 0 {
+        return Some(None);
+    }
+    let frame_size = (bits.read_bits(11)? + 1) * 2;
+
+    let fscod = bits.read_bits(2)? as usize;
+    let (sample_rate, num_blocks) = if fscod == 3 {
+        let sample_rate = match bits.read_bits(2)? {
+            0 => 24_000,
+            1 => 22_050,
+            2 => 16_000,
+            _ => return Some(None),
+        };
+        (sample_rate, 6)
+    } else {
+        let sample_rate = *AC3_SAMPLE_RATES.get(fscod)?;
+        if sample_rate == 0 {
+            return Some(None);
+        }
+        let num_blocks = *EAC3_BLOCKS.get(bits.read_bits(2)? as usize)?;
+        (sample_rate, num_blocks)
+    };
+
+    let acmod = bits.read_bits(3)? as usize;
+    let lfe_on = bits.read_bit()? != 0;
+
+    Some(Some(Ac3Header {
+        channels: AC3_CHANNELS_BY_ACMOD[acmod] + u8::from(lfe_on),
+        bit_rate_bps: Some((8 * frame_size * sample_rate) / (num_blocks * 256)),
+        sample_rate,
+        channel_layout: ac3_channel_layout(acmod, lfe_on),
+        bitrate_is_estimate: true,
+    }))
 }
 
 #[cfg(test)]

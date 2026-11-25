@@ -101,7 +101,7 @@ pub(crate) fn parse_mp4_source(
     let parsed_metadata = parse_mp4_metadata(&prepared.metadata);
     let metadata_by_track = parsed_metadata.tracks;
 
-    let parsed = match bound_mp4parse_tables(&mut prepared.metadata) {
+    let parsed = match bound_mp4parse_input(&mut prepared.metadata) {
         Ok(()) => mp4parse::read_mp4(&mut Cursor::new(prepared.metadata.as_slice()))
             .map_err(|error| format!("{error:?}")),
         Err(table) => Err(table.to_string()),
@@ -574,13 +574,17 @@ fn sanitize_mp4_box_range(data: &mut Vec<u8>, mut range: Range<usize>, depth: us
         let Some(header) = read_box_header_from_bytes(&data[pos..range.end]) else {
             break;
         };
-        let mut box_size = header.size as usize;
-        if box_size < header.header_size || pos + box_size > range.end {
+        // A declared size past the range, or past what the address space
+        // can hold, ends the walk.
+        let Some(mut box_size) = usize::try_from(header.size)
+            .ok()
+            .filter(|size| *size >= header.header_size && *size <= range.end - pos)
+        else {
             break;
-        }
+        };
 
         let box_delta = if &header.name == b"hdlr" {
-            sanitize_hdlr_box(data, pos, header)
+            sanitize_hdlr_box(data, pos, header, box_size)
         } else if depth < MP4_BOX_MAX_DEPTH
             && let Some(child_range) = mp4_child_range(pos, header, box_size)
         {
@@ -624,9 +628,15 @@ fn mp4_child_range(
     })
 }
 
-fn sanitize_hdlr_box(data: &mut Vec<u8>, box_start: usize, header: Mp4BoxHeader) -> usize {
+/// `box_size` is the box's declared size, already held to its parent.
+fn sanitize_hdlr_box(
+    data: &mut Vec<u8>,
+    box_start: usize,
+    header: Mp4BoxHeader,
+    box_size: usize,
+) -> usize {
     let payload_start = box_start + header.header_size;
-    let box_end = box_start + header.size as usize;
+    let box_end = box_start + box_size;
     if box_end > data.len() || box_end < payload_start {
         return 0;
     }

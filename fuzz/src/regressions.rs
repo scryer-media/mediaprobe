@@ -137,6 +137,25 @@ pub const REGRESSIONS: &[Regression] = &[
             0x91, 0xFF, 0xFF, 0xFC, 0xFF, 0x64, 0x91,
         ],
     },
+    Regression {
+        open: false,
+        name: "mp4_box_size_overflows_end_of_box",
+        target: Target::Container("mp4"),
+        finding: "The handler-name sanitizer added a child box's declared size to its \
+                  offset unchecked (sanitize_mp4_box_range), so a 64-bit size of u64::MAX \
+                  anywhere after the first byte of the metadata panicked on overflow. Found \
+                  by the mp4_boxes fuzz target; minimised by hand to a moov holding one such \
+                  box and the bytes `hdlr`. Closed: a declared size past its parent ends the \
+                  walk, checked.",
+        // ftyp, then a moov holding a `free` box of 64-bit size u64::MAX
+        // followed by the bytes `hdlr`.
+        input: &[
+            0x00, 0x00, 0x00, 0x10, b'f', b't', b'y', b'p', b'i', b's', b'o', b'm', 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x1C, b'm', b'o', b'o', b'v', 0x00, 0x00, 0x00, 0x01,
+            b'f', b'r', b'e', b'e', 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, b'h', b'd',
+            b'l', b'r',
+        ],
+    },
 ];
 
 #[cfg(test)]

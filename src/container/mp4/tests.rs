@@ -823,8 +823,8 @@ fn sample_size_count_past_its_box_is_refused_before_mp4parse() {
     let file = mov_with_tables(&full_box(b"stsz", 0, &[0, 0x4000_0018]), &[]);
     let mut prepared = file.clone();
     assert_eq!(
-        bound_mp4parse_tables(&mut prepared),
-        Err(OversizedTable {
+        bound_mp4parse_input(&mut prepared),
+        Err(Mp4parseRefusal::Count {
             name: *b"stsz",
             count: 0x4000_0018
         })
@@ -860,10 +860,10 @@ fn every_counted_table_is_held_to_its_box() {
             table[0..4].copy_from_slice(&size.to_be_bytes());
             mov_with_tables(&table, &[])
         };
-        assert_eq!(bound_mp4parse_tables(&mut table(2)), Ok(()), "{name:?}");
+        assert_eq!(bound_mp4parse_input(&mut table(2)), Ok(()), "{name:?}");
         assert_eq!(
-            bound_mp4parse_tables(&mut table(3)),
-            Err(OversizedTable { name, count: 3 }),
+            bound_mp4parse_input(&mut table(3)),
+            Err(Mp4parseRefusal::Count { name, count: 3 }),
             "{name:?}"
         );
     }
@@ -873,8 +873,8 @@ fn every_counted_table_is_held_to_its_box() {
         let size = elst.len() as u32;
         elst[0..4].copy_from_slice(&size.to_be_bytes());
         assert_eq!(
-            bound_mp4parse_tables(&mut mov_with_tables(&[], &elst)),
-            Err(OversizedTable {
+            bound_mp4parse_input(&mut mov_with_tables(&[], &elst)),
+            Err(Mp4parseRefusal::Count {
                 name: *b"elst",
                 count: 1
             })
@@ -887,7 +887,7 @@ fn table_bounds_follow_what_mp4parse_reads() {
     // A constant sample size reserves nothing, whatever the count.
     let constant = full_box(b"stsz", 0, &[512, u32::MAX]);
     assert_eq!(
-        bound_mp4parse_tables(&mut mov_with_tables(&constant, &[])),
+        bound_mp4parse_input(&mut mov_with_tables(&constant, &[])),
         Ok(())
     );
     // mp4parse reads `elst` only in `edts` and the sample tables only in
@@ -895,7 +895,7 @@ fn table_bounds_follow_what_mp4parse_reads() {
     let oversized_elst = full_box(b"elst", 0, &[u32::MAX]);
     let oversized_stts = full_box(b"stts", 0, &[u32::MAX]);
     assert_eq!(
-        bound_mp4parse_tables(&mut mov_with_tables(&oversized_elst, &oversized_stts)),
+        bound_mp4parse_input(&mut mov_with_tables(&oversized_elst, &oversized_stts)),
         Ok(())
     );
     // A table that claims more than its parent holds is read only to the
@@ -904,8 +904,8 @@ fn table_bounds_follow_what_mp4parse_reads() {
     overrun.extend_from_slice(&[0; 4]);
     overrun[0..4].copy_from_slice(&24_u32.to_be_bytes());
     assert_eq!(
-        bound_mp4parse_tables(&mut mov_with_tables(&overrun, &[])),
-        Err(OversizedTable {
+        bound_mp4parse_input(&mut mov_with_tables(&overrun, &[])),
+        Err(Mp4parseRefusal::Count {
             name: *b"stco",
             count: 2
         })
@@ -924,6 +924,309 @@ fn overstated_sample_description_count_is_lowered_to_what_fits() {
         .position(|window| window == b"stsd")
         .unwrap()
         + 8;
-    assert_eq!(bound_mp4parse_tables(&mut file), Ok(()));
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
     assert_eq!(file[at..at + 4], 1_u32.to_be_bytes());
+}
+
+/// Sets a box's 32-bit size field to `size`, whatever its content holds.
+fn with_declared_size(mut boxed: Vec<u8>, size: u32) -> Vec<u8> {
+    boxed[0..4].copy_from_slice(&size.to_be_bytes());
+    boxed
+}
+
+/// The 32-bit size field of the first box named `name` in `file`.
+fn declared_size(file: &[u8], name: &[u8; 4]) -> u32 {
+    let at = file
+        .windows(4)
+        .position(|window| window == name)
+        .expect("box present");
+    u32::from_be_bytes(file[at - 4..at].try_into().unwrap())
+}
+
+/// `ftyp` and a `moov` whose one track has `handler`, then `stsd` holding
+/// `entries` and declaring `count` of them.
+fn mov_with_entries(handler: &[u8; 4], count: u32, entries: &[Vec<u8>]) -> Vec<u8> {
+    let mut stsd = full_box(b"stsd", 0, &[count]);
+    for entry in entries {
+        stsd.extend_from_slice(entry);
+    }
+    let size = stsd.len() as u32;
+    let stsd = with_declared_size(stsd, size);
+    let stbl = make_box(b"stbl", &stsd);
+    let minf = make_box(b"minf", &stbl);
+    let mut mdia_payload = make_hdlr_box(0, handler, [0; 3], b"track\0");
+    mdia_payload.extend_from_slice(&minf);
+    let mdia = make_box(b"mdia", &mdia_payload);
+    let moov = make_box(b"moov", &make_box(b"trak", &mdia));
+    let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+    file.extend_from_slice(&moov);
+    file
+}
+
+/// A visual sample entry with its fixed fields zeroed, then `children`.
+fn video_entry(children: &[Vec<u8>]) -> Vec<u8> {
+    let mut payload = vec![0_u8; 78];
+    for child in children {
+        payload.extend_from_slice(child);
+    }
+    make_box(b"avc1", &payload)
+}
+
+/// A version 0 sound sample entry with its fixed fields zeroed, then
+/// `children`.
+fn audio_entry(children: &[Vec<u8>]) -> Vec<u8> {
+    let mut payload = vec![0_u8; 28];
+    for child in children {
+        payload.extend_from_slice(child);
+    }
+    make_box(b"mp4a", &payload)
+}
+
+#[test]
+fn handler_box_past_its_media_box_is_refused_before_mp4parse() {
+    // The fuzzer's `read_trak` allocation: mp4parse reserved the handler
+    // name from the declared size of an `hdlr` four gigabytes long.
+    let hdlr = with_declared_size(make_hdlr_box(0, b"vide", [0; 3], b"name\0"), u32::MAX - 210);
+    let mdia = make_box(b"mdia", &hdlr);
+    let moov = make_box(b"moov", &make_box(b"trak", &mdia));
+    let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+    file.extend_from_slice(&moov);
+    assert_eq!(
+        bound_mp4parse_input(&mut file.clone()),
+        Err(Mp4parseRefusal::Overrun {
+            name: *b"hdlr",
+            size: u64::from(u32::MAX - 210),
+            available: 37,
+        })
+    );
+    match parse_mp4_source(&mut Cursor::new(file), "mov", ProbeDepth::Full) {
+        Err(ProbeError::Malformed(message)) => assert_eq!(
+            message,
+            "mp4 parse: hdlr box size 4294967085 exceeds the 37 bytes left in its parent"
+        ),
+        other => panic!("expected the overrun refusal, got {other:?}"),
+    }
+}
+
+#[test]
+fn boxes_mp4parse_reads_whole_are_held_to_their_parent() {
+    // A box of a 64-bit size that runs past its parent.
+    let mut wide = vec![0, 0, 0, 1];
+    wide.extend_from_slice(b"auxl");
+    wide.extend_from_slice(&u64::MAX.to_be_bytes());
+    let tref = make_box(b"tref", &wide);
+    let moov = make_box(b"moov", &make_box(b"trak", &tref));
+    let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+    file.extend_from_slice(&moov);
+    assert_eq!(
+        bound_mp4parse_input(&mut file),
+        Err(Mp4parseRefusal::Overrun {
+            name: *b"auxl",
+            size: u64::MAX,
+            available: 16,
+        })
+    );
+
+    for name in [*b"avcC", *b"d263", *b"esds"] {
+        let config = with_declared_size(make_box(&name, &[1, 2, 3, 4]), 0x7FFF_FFFF);
+        let mut file = mov_with_entries(b"vide", 1, &[video_entry(&[config])]);
+        assert!(
+            matches!(
+                bound_mp4parse_input(&mut file),
+                Err(Mp4parseRefusal::Overrun { name: refused, .. }) if refused == name
+            ),
+            "{name:?}"
+        );
+    }
+}
+
+#[test]
+fn sample_entry_boxes_are_read_only_where_mp4parse_reads_them() {
+    let oversized = with_declared_size(make_box(b"avcC", &[1, 2, 3, 4]), 0x7FFF_FFFF);
+    // The entries of a track with no video or sound handler are skipped.
+    for handler in [*b"meta", *b"text"] {
+        let mut file = mov_with_entries(
+            &handler,
+            1,
+            &[video_entry(std::slice::from_ref(&oversized))],
+        );
+        assert_eq!(bound_mp4parse_input(&mut file), Ok(()), "{handler:?}");
+    }
+    // An unsupported `vpcC` gives the entry up before the next child.
+    let vpcc = full_box(b"vpcC", 7, &[0]);
+    let mut file = mov_with_entries(b"vide", 1, &[video_entry(&[vpcc, oversized.clone()])]);
+    let original = file.clone();
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(file, original);
+    // After a protection scheme the entry may already be given up, so the
+    // box is read only to the entry's end.
+    let sinf = make_box(b"sinf", &[]);
+    let mut file = mov_with_entries(b"vide", 1, &[video_entry(&[sinf, oversized])]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(declared_size(&file, b"avcC"), 12);
+}
+
+#[test]
+fn av1_config_past_its_entry_is_lowered_only_when_mp4parse_gives_it_up() {
+    let config = |marker: u8| with_declared_size(make_box(b"av1C", &[marker, 0, 0, 0]), 1 << 30);
+    // A wrong marker byte gives the entry up after the bytes present.
+    let mut file = mov_with_entries(b"vide", 1, &[video_entry(&[config(0x00)])]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(declared_size(&file, b"av1C"), 12);
+    // A valid marker reads on and runs out.
+    let mut file = mov_with_entries(b"vide", 1, &[video_entry(&[config(0x81)])]);
+    assert_eq!(
+        bound_mp4parse_input(&mut file),
+        Err(Mp4parseRefusal::Overrun {
+            name: *b"av1C",
+            size: 1 << 30,
+            available: 12,
+        })
+    );
+}
+
+#[test]
+fn audio_entry_boxes_follow_how_mp4parse_reads_them() {
+    let oversized_esds = with_declared_size(make_box(b"esds", &[0; 4]), 0x7FFF_FFFF);
+    let mut file = mov_with_entries(
+        b"soun",
+        1,
+        &[audio_entry(std::slice::from_ref(&oversized_esds))],
+    );
+    assert!(matches!(
+        bound_mp4parse_input(&mut file),
+        Err(Mp4parseRefusal::Overrun { name, .. }) if &name == b"esds"
+    ));
+    // An `esds` inside a QuickTime `wave` atom is read the same way.
+    let wave = make_box(b"wave", &oversized_esds);
+    let mut file = mov_with_entries(b"soun", 1, &[audio_entry(&[wave])]);
+    assert!(matches!(
+        bound_mp4parse_input(&mut file),
+        Err(Mp4parseRefusal::Overrun { name, .. }) if &name == b"esds"
+    ));
+    // An earlier `esds` may already have given the entry up.
+    let esds = make_box(b"esds", &[0; 4]);
+    let mut file = mov_with_entries(b"soun", 1, &[audio_entry(&[esds, oversized_esds])]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    // An unsupported `dfLa` version gives the entry up before its blocks.
+    let mut dfla = vec![1, 0, 0, 0, 0x80, 0xFF, 0xFF, 0xFF];
+    dfla.extend_from_slice(&[0; 4]);
+    let mut file = mov_with_entries(b"soun", 1, &[audio_entry(&[make_box(b"dfLa", &dfla)])]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+}
+
+#[test]
+fn protection_header_counts_are_held_to_the_box() {
+    let pssh = |key_ids: u32, key_id_bytes: usize, data_size: u32, data_bytes: usize| {
+        let mut payload = vec![1, 0, 0, 0];
+        payload.extend_from_slice(&[0; 16]);
+        payload.extend_from_slice(&key_ids.to_be_bytes());
+        payload.extend_from_slice(&vec![0; key_id_bytes]);
+        payload.extend_from_slice(&data_size.to_be_bytes());
+        payload.extend_from_slice(&vec![0; data_bytes]);
+        let moov = make_box(b"moov", &make_box(b"pssh", &payload));
+        let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+        file.extend_from_slice(&moov);
+        file
+    };
+    assert_eq!(bound_mp4parse_input(&mut pssh(2, 32, 3, 3)), Ok(()));
+    assert_eq!(
+        bound_mp4parse_input(&mut pssh(3, 32, 3, 3)),
+        Err(Mp4parseRefusal::Count {
+            name: *b"pssh",
+            count: 3
+        })
+    );
+    assert_eq!(
+        bound_mp4parse_input(&mut pssh(2, 32, u32::MAX, 3)),
+        Err(Mp4parseRefusal::DataSize {
+            name: *b"pssh",
+            size: u32::MAX
+        })
+    );
+}
+
+#[test]
+fn metadata_item_value_past_its_item_is_lowered_to_the_bytes_present() {
+    let data = with_declared_size(make_box(b"data", &[0, 0, 0, 1, 0, 0, 0, 0, b'x']), u32::MAX);
+    let ilst = make_box(b"ilst", &make_box(b"\xa9nam", &data));
+    let udta = make_box(b"udta", &make_meta_box(&ilst));
+    let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+    file.extend_from_slice(&make_box(b"moov", &udta));
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(declared_size(&file, b"data"), 17);
+}
+
+#[test]
+fn sample_description_count_is_lowered_to_the_entries_mp4parse_reads() {
+    let entry = || make_box(b"avc1", &[0; 8]);
+    let mut file = mov_with_entries(b"text", u32::MAX, &[entry(), entry()]);
+    let at = file
+        .windows(4)
+        .position(|window| window == b"stsd")
+        .unwrap()
+        + 8;
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(file[at..at + 4], 2_u32.to_be_bytes());
+    // A count within the entries present is left alone.
+    let mut file = mov_with_entries(b"text", 1, &[entry(), entry()]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(file[at..at + 4], 1_u32.to_be_bytes());
+    // An entry mp4parse fails on stays within the count, so it still fails.
+    let mut malformed = entry();
+    malformed[0..4].copy_from_slice(&4_u32.to_be_bytes());
+    let mut file = mov_with_entries(b"text", u32::MAX, &[entry(), malformed]);
+    assert_eq!(bound_mp4parse_input(&mut file), Ok(()));
+    assert_eq!(file[at..at + 4], 2_u32.to_be_bytes());
+}
+
+#[test]
+fn per_box_records_are_held_to_the_parser_budget() {
+    let tracks = |count: usize| {
+        let trak = make_box(b"trak", &[]);
+        let moov = make_box(b"moov", &trak.repeat(count));
+        let mut file = make_box(b"ftyp", b"qt  \0\0\0\0qt  ");
+        file.extend_from_slice(&moov);
+        file
+    };
+    let fits = MP4PARSE_RECORD_BUDGET / size_of::<mp4parse::Track>();
+    assert_eq!(bound_mp4parse_input(&mut tracks(fits)), Ok(()));
+    assert_eq!(
+        bound_mp4parse_input(&mut tracks(fits + 1)),
+        Err(Mp4parseRefusal::Records)
+    );
+}
+
+#[test]
+fn box_size_past_the_address_space_ends_the_sanitizing_walk() {
+    // A 64-bit size of u64::MAX after the start of the metadata overflowed
+    // the end-of-box sum.
+    let mut moov_payload = vec![0, 0, 0, 1];
+    moov_payload.extend_from_slice(b"free");
+    moov_payload.extend_from_slice(&u64::MAX.to_be_bytes());
+    moov_payload.extend_from_slice(b"hdlr");
+    let mut file = make_box(b"ftyp", b"isom\0\0\0\0");
+    file.extend_from_slice(&make_box(b"moov", &moov_payload));
+    let mut sanitized = file.clone();
+    sanitize_prepared_mp4_metadata(&mut sanitized);
+    assert_eq!(sanitized, file);
+    assert!(matches!(
+        parse_mp4_source(&mut Cursor::new(file), "mp4", ProbeDepth::Full),
+        Err(ProbeError::Malformed(_))
+    ));
+}
+
+#[test]
+fn sample_entry_size_past_the_address_space_is_skipped() {
+    // Version and flags, one entry, then an entry of 64-bit size u64::MAX.
+    let mut stsd = vec![0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1];
+    stsd.extend_from_slice(b"avc1");
+    stsd.extend_from_slice(&u64::MAX.to_be_bytes());
+    stsd.extend_from_slice(&[0; 78]);
+    let mut track = Mp4TrackMetadata::default();
+    parse_stsd(&stsd, &mut track);
+    assert_eq!(track.sample_entry_fourcc, None);
+    let mut walked = 0;
+    for_each_mp4_box(&stsd[8..], |_, _| walked += 1);
+    assert_eq!(walked, 0);
 }
