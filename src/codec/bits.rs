@@ -118,6 +118,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Bits read so far.
+    #[cfg(test)]
     pub(crate) fn position(&self) -> usize {
         self.bit_pos
     }
@@ -150,6 +151,7 @@ pub(crate) fn read_se(bits: &mut BitReader<'_>) -> Option<i64> {
 
 /// Zero bits before the terminating one bit that no Exp-Golomb value of at
 /// most 64 bits can have.
+#[cfg(test)]
 pub(crate) const EXP_GOLOMB_ZERO_RUN: usize = 64;
 
 /// Whether `data`, from bit `from_bit` on, holds `run` or more zero bits in a
@@ -161,6 +163,7 @@ pub(crate) const EXP_GOLOMB_ZERO_RUN: usize = 64;
 /// Exp-Golomb value could start is refused before it reaches that reader.
 /// Zeros that run to the end of the data are not counted: with no one bit
 /// after them the reader stops at the end instead.
+#[cfg(test)]
 pub(crate) fn has_terminated_zero_run(data: &[u8], from_bit: usize, run: usize) -> bool {
     let mut zeros = 0_usize;
     for (index, &byte) in data.iter().enumerate().skip(from_bit / 8) {

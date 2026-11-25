@@ -27,8 +27,8 @@ pub(crate) fn probe_h264_track(data: &[u8], track: &mut RawTrack) {
     track.height = size.map(|size| size.1);
     track.frame_rate_fps = sps.frame_rate();
     track.codec_private = Some(sps_nal.to_vec());
-    track.color_transfer = sps.color_config.as_ref().and_then(|color| {
-        let transfer = color.transfer_characteristics as u32;
+    track.color_transfer = sps.color.as_ref().and_then(|color| {
+        let transfer = u32::from(color.transfer);
         if transfer > 0 && transfer != 2 {
             Some(transfer)
         } else {
@@ -45,14 +45,14 @@ pub(crate) fn probe_hevc_track(data: &[u8], track: &mut RawTrack) {
         return;
     };
 
-    let size = super::hevc::sps_dimensions(&sps.rbsp);
+    let size = super::hevc::sps_dimensions(&sps);
     track.width = size.map(|size| size.0);
     track.height = size.map(|size| size.1);
     track.codec_private = Some(sps_nal.to_vec());
-    track.color_transfer = sps.rbsp.vui_parameters.as_ref().and_then(|vui| {
-        let transfer = vui.video_signal_type.transfer_characteristics;
+    track.color_transfer = sps.vui.as_ref().and_then(|vui| {
+        let transfer = vui.transfer_characteristics;
         if transfer > 0 && transfer != 2 {
-            Some(transfer as u32)
+            Some(u32::from(transfer))
         } else {
             None
         }
