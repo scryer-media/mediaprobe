@@ -73,6 +73,28 @@ pub const REGRESSIONS: &[Regression] = &[
     },
     Regression {
         open: false,
+        name: "hevc_sps_scaling_list_pred_before_first_matrix",
+        target: Target::CodecConfig,
+        finding: "scuffle-h265 0.2.2 subtracts scaling_list_pred_matrix_id_delta from the \
+                  matrix index unchecked (sps/scaling_list.rs:90) and then indexes its \
+                  default table with the result, so a scaling list predicted from before \
+                  the first matrix panics on overflow, or out of bounds once it wraps. \
+                  Found by the disc_navigation fuzz target; minimised to one SPS whose \
+                  first 8x8 list predicts from one matrix back. Closed: the scaling list \
+                  data is read and checked before the SPS reaches the dependency.",
+        // Selector 24: Matroska V_MPEGH/ISO/HEVC with this CodecPrivate, an
+        // hvcC holding one SPS.
+        input: &[
+            0x18, 0x01, 0x01, 0x60, 0x00, 0x00, 0x00, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
+            0xF0, 0x00, 0xF8, 0xFD, 0xF8, 0xF8, 0x00, 0x00, 0x0F, 0x01, 0x21, 0x00, 0x01, 0x00,
+            0x2E, 0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03,
+            0x00, 0x00, 0x03, 0x00, 0x1E, 0xA0, 0x20, 0x81, 0x05, 0x96, 0x56, 0xD6, 0x4F, 0x55,
+            0x52, 0x55, 0x55, 0x55, 0x45, 0xE0, 0x2D, 0x01, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00,
+            0x00, 0x03, 0x00, 0x18, 0x08,
+        ],
+    },
+    Regression {
+        open: false,
         name: "h264_sps_crop_exceeds_height",
         target: Target::CodecConfig,
         finding: "scuffle-h264 0.2.2 subtracts the frame crop from the coded height \

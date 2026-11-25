@@ -123,6 +123,31 @@ impl<'a> BitReader<'a> {
     }
 }
 
+/// Reads one unsigned Exp-Golomb value of at most 32 bits.
+pub(crate) fn read_ue(bits: &mut BitReader<'_>) -> Option<u64> {
+    let mut leading_zeros = 0;
+    while bits.read_bit()? == 0 {
+        leading_zeros += 1;
+        if leading_zeros > 31 {
+            return None;
+        }
+    }
+    let suffix = if leading_zeros == 0 {
+        0
+    } else {
+        u64::from(bits.read_bits(leading_zeros)?)
+    };
+    Some((1_u64 << leading_zeros) - 1 + suffix)
+}
+
+/// Reads one signed Exp-Golomb value whose code is at most 32 bits: codes
+/// 1, 2, 3, 4 map to 1, -1, 2, -2.
+pub(crate) fn read_se(bits: &mut BitReader<'_>) -> Option<i64> {
+    let code = read_ue(bits)?;
+    let magnitude = code.div_ceil(2) as i64;
+    Some(if code % 2 == 0 { -magnitude } else { magnitude })
+}
+
 /// Zero bits before the terminating one bit that no Exp-Golomb value of at
 /// most 64 bits can have.
 pub(crate) const EXP_GOLOMB_ZERO_RUN: usize = 64;
@@ -184,9 +209,42 @@ impl TestBitWriter {
         }
     }
 
+    /// Writes an unsigned Exp-Golomb value.
+    pub(crate) fn write_ue(&mut self, value: u64) {
+        let prefix = (value + 1).ilog2() as usize;
+        self.write_bits(0, prefix);
+        self.write_bits(value + 1, prefix + 1);
+    }
+
+    /// Writes a signed Exp-Golomb value.
+    pub(crate) fn write_se(&mut self, value: i64) {
+        let magnitude = value.unsigned_abs();
+        self.write_ue(if value > 0 {
+            magnitude * 2 - 1
+        } else {
+            magnitude * 2
+        });
+    }
+
     pub(crate) fn finish(self) -> Vec<u8> {
         self.bytes
     }
+}
+
+/// Adds H.264/HEVC emulation prevention bytes to an RBSP.
+#[cfg(test)]
+pub(crate) fn escape_rbsp(rbsp: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(rbsp.len() + rbsp.len() / 2);
+    let mut zeros = 0;
+    for &byte in rbsp {
+        if zeros >= 2 && byte <= 3 {
+            out.push(3);
+            zeros = 0;
+        }
+        out.push(byte);
+        zeros = if byte == 0 { zeros + 1 } else { 0 };
+    }
+    out
 }
 
 #[cfg(test)]

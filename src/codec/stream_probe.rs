@@ -45,8 +45,9 @@ pub(crate) fn probe_hevc_track(data: &[u8], track: &mut RawTrack) {
         return;
     };
 
-    track.width = Some(sps.rbsp.cropped_width() as i32);
-    track.height = Some(sps.rbsp.cropped_height() as i32);
+    let size = super::hevc::sps_dimensions(&sps.rbsp);
+    track.width = size.map(|size| size.0);
+    track.height = size.map(|size| size.1);
     track.codec_private = Some(sps_nal.to_vec());
     track.color_transfer = sps.rbsp.vui_parameters.as_ref().and_then(|vui| {
         let transfer = vui.video_signal_type.transfer_characteristics;

@@ -1,20 +1,68 @@
 //! H.264 decoder configuration (avcC): profile, bit depth and dimensions.
 
 use super::CodecInfo;
-use super::bits::{EXP_GOLOMB_ZERO_RUN, has_terminated_zero_run};
+use super::bits::{BitReader, EXP_GOLOMB_ZERO_RUN, has_terminated_zero_run, read_se, read_ue};
 use crate::scan;
 
 /// Parses an H.264 SPS NAL unit that may hold emulation prevention bytes.
 ///
 /// An SPS with a run of zero bits long enough to overflow the dependency's
 /// Exp-Golomb reader is refused first. No field of a conforming SPS is that
-/// long a run of zeros.
+/// long a run of zeros. So is one whose scaling matrices would overflow the
+/// dependency.
 pub(crate) fn parse_sps(nal: &[u8]) -> Option<scuffle_h264::Sps> {
     let rbsp = scan::h2645_unescape_rbsp(nal);
     if has_terminated_zero_run(&rbsp, 0, EXP_GOLOMB_ZERO_RUN) {
         return None;
     }
+    check_scaling_matrices(&rbsp)?;
     scuffle_h264::Sps::parse(std::io::Cursor::new(rbsp.as_ref())).ok()
+}
+
+/// Reads an SPS as far as its scaling matrices, following the field order
+/// `scuffle-h264` reads, and refuses a `delta_scale` outside -128..=127,
+/// which the dependency adds to the running scale unchecked. Also returns
+/// `None` when the data ends first or a value is wider than 32 bits.
+fn check_scaling_matrices(rbsp: &[u8]) -> Option<()> {
+    let mut bits = BitReader::new(rbsp);
+    bits.skip_bits(8)?; // NAL unit header
+    let profile_idc = bits.read_bits(8)?;
+    bits.skip_bits(16)?; // constraint flags, reserved_zero_2bits, level_idc
+    read_ue(&mut bits)?; // seq_parameter_set_id
+    if !matches!(
+        profile_idc,
+        100 | 110 | 122 | 244 | 44 | 83 | 86 | 118 | 128 | 138 | 139 | 134 | 135
+    ) {
+        return Some(());
+    }
+    let chroma_format_idc = read_ue(&mut bits)?;
+    if chroma_format_idc == 3 {
+        bits.skip_bits(1)?; // separate_colour_plane_flag
+    }
+    read_ue(&mut bits)?; // bit_depth_luma_minus8
+    read_ue(&mut bits)?; // bit_depth_chroma_minus8
+    bits.skip_bits(1)?; // qpprime_y_zero_transform_bypass_flag
+    if bits.read_bit()? == 0 {
+        return Some(()); // seq_scaling_matrix_present_flag
+    }
+    let lists = if chroma_format_idc == 3 { 12 } else { 8 };
+    for list in 0..lists {
+        if bits.read_bit()? == 0 {
+            continue;
+        }
+        let mut next_scale = 8;
+        for _ in 0..if list < 6 { 16 } else { 64 } {
+            let delta_scale = read_se(&mut bits)?;
+            if !(-128..=127).contains(&delta_scale) {
+                return None;
+            }
+            next_scale = (next_scale + delta_scale + 256) % 256;
+            if next_scale == 0 {
+                break;
+            }
+        }
+    }
+    Some(())
 }
 
 /// The cropped picture size an SPS declares, or `None` when its fields do
@@ -170,6 +218,7 @@ fn map_h264_profile(profile_idc: u8) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codec::bits::{TestBitWriter, escape_rbsp};
 
     /// A baseline SPS whose first Exp-Golomb value has a 64-bit zero prefix.
     const SPS_WITH_LONG_ZERO_PREFIX: [u8; 22] = [
@@ -185,6 +234,64 @@ mod tests {
         shorter[13..].fill(0xFF);
         let rbsp = scan::h2645_unescape_rbsp(&shorter);
         assert!(!has_terminated_zero_run(&rbsp, 0, EXP_GOLOMB_ZERO_RUN));
+    }
+
+    /// A High profile 64x48 SPS whose first scaling list holds `deltas`.
+    fn high_sps_with_scaling_list(deltas: &[i64]) -> Vec<u8> {
+        let mut out = TestBitWriter::new();
+        out.write_bits(0x67, 8); // NAL unit header
+        out.write_bits(100, 8); // profile_idc
+        out.write_bits(0, 8); // constraint flags
+        out.write_bits(30, 8); // level_idc
+        out.write_ue(0); // seq_parameter_set_id
+        out.write_ue(1); // 4:2:0
+        out.write_ue(0); // bit_depth_luma_minus8
+        out.write_ue(0); // bit_depth_chroma_minus8
+        out.write_bits(0b011, 3); // no bypass; scaling matrix; first list
+        for &delta in deltas {
+            out.write_se(delta);
+        }
+        out.write_bits(0, 7); // the other lists absent
+        out.write_ue(0); // log2_max_frame_num_minus4
+        out.write_ue(2); // pic_order_cnt_type
+        out.write_ue(1); // max_num_ref_frames
+        out.write_bits(0, 1); // gaps_in_frame_num_value_allowed_flag
+        out.write_ue(3); // pic_width_in_mbs_minus1
+        out.write_ue(2); // pic_height_in_map_units_minus1
+        out.write_bits(0b110, 3); // frame_mbs_only, direct_8x8, no cropping
+        out.write_bits(0b01, 2); // no VUI, rbsp_stop_one_bit
+        escape_rbsp(&out.finish())
+    }
+
+    #[test]
+    fn an_h264_sps_with_scaling_matrices_parses_as_before() {
+        let mut boundary = vec![127, -128];
+        boundary.resize(16, 0);
+        // A list that ends early when its scale reaches zero.
+        for deltas in [boundary, vec![-8]] {
+            let nal = high_sps_with_scaling_list(&deltas);
+            let sps = parse_sps(&nal).expect("SPS parses");
+            let rbsp = scan::h2645_unescape_rbsp(&nal);
+            let direct = scuffle_h264::Sps::parse(std::io::Cursor::new(rbsp.as_ref()));
+            assert_eq!(sps, direct.expect("direct"));
+            assert_eq!(
+                sps.ext.as_ref().expect("extension").scaling_matrix[0],
+                deltas
+            );
+            assert_eq!(sps_dimensions(&sps), Some((64, 48)));
+        }
+    }
+
+    #[test]
+    fn an_h264_scaling_matrix_delta_out_of_range_is_refused() {
+        // The largest delta has a 63-bit zero prefix, short of the zero run
+        // refused before, and overflows the dependency's running scale.
+        for delta in [128, -129, i64::MAX, i64::MIN + 1] {
+            let nal = high_sps_with_scaling_list(&[delta]);
+            let rbsp = scan::h2645_unescape_rbsp(&nal);
+            assert!(check_scaling_matrices(&rbsp).is_none(), "{delta}");
+            assert!(parse_sps(&nal).is_none(), "{delta}");
+        }
     }
 
     #[test]
