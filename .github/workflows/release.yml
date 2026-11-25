@@ -7,8 +7,10 @@ name: release
 #   commit already passed ci.yml, then publishes the crate to crates.io
 #   through trusted publishing and creates the tag v<version> and the GitHub
 #   release. dry_run (the default) stops after the checks.
-# - Push a signed tag v<version> on main. The run tests the tag itself, then
-#   publishes the same way.
+# - Push a signed tag v<version> on main. The run refuses unless GitHub
+#   verifies the tag's signature, the tagged commit is on main and that commit
+#   already passed ci.yml; it then tests the tag itself and publishes the same
+#   way.
 #
 # crates.io's trusted publisher is registered to this file's name and the
 # crates-io environment, so both ways have to stay in this one workflow.
@@ -123,11 +125,48 @@ jobs:
             exit 1
           fi
           echo "tag v$VERSION: ${tagged:-not yet created}"
-      # A dispatched release does not rerun the platform matrix; it takes
-      # ci.yml's verdict on this exact commit, which covers every platform,
-      # wasm, the MSRV and the package.
+      # A pushed tag gets the gates a dispatched release gets from running on
+      # main: the tag is annotated and its signature verified by GitHub, it
+      # names the commit this run checked out, and that commit is on main.
+      # The tag and the compare are read from the API, so the shallow checkout
+      # does not need main's history.
+      - name: The tag is signed and its commit is on main
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ref="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" \
+            --jq '"\(.object.type) \(.object.sha)"')"
+          read -r kind object <<< "$ref"
+          if [ "$kind" != tag ]; then
+            echo "::error::$GITHUB_REF_NAME is a lightweight tag; release tags are annotated and signed"
+            exit 1
+          fi
+          tag="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object" \
+            --jq '"\(.verification.verified) \(.verification.reason) \(.object.type) \(.object.sha)"')"
+          read -r verified reason target_kind target <<< "$tag"
+          echo "tag $GITHUB_REF_NAME: signature verified $verified ($reason), names $target_kind $target"
+          if [ "$verified" != true ]; then
+            echo "::error::GitHub does not verify the signature on $GITHUB_REF_NAME ($reason)"
+            exit 1
+          fi
+          if [ "$target_kind" != commit ] || [ "$target" != "$GITHUB_SHA" ]; then
+            echo "::error::$GITHUB_REF_NAME names $target_kind $target, not the checked-out commit $GITHUB_SHA"
+            exit 1
+          fi
+          # Comparing the commit with main reports "ahead" or "identical" only
+          # when main contains it.
+          status="$(gh api "repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...main" --jq .status)"
+          echo "main compared with $GITHUB_SHA: $status"
+          if [ "$status" != ahead ] && [ "$status" != identical ]; then
+            echo "::error::$GITHUB_SHA is not on main ($status); tag a commit that main contains"
+            exit 1
+          fi
+      # Neither way reruns the platform matrix before publishing on its own
+      # word; both take ci.yml's verdict on this exact commit, which covers
+      # every platform, wasm, the MSRV and the package.
       - name: This commit already passed CI
-        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
