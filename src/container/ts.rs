@@ -32,6 +32,12 @@ const FALLBACK_DURATION_PROBE_PACKETS: usize = 50_000;
 const PROGRAM_MAP_PROBE_PACKETS: u32 = 200_000;
 const STREAM_PROBE_PACKET_LIMIT: usize = 20_000;
 const STREAM_PROBE_BATCH_PACKETS: usize = 256;
+/// Elementary streams one probe reports. Broadcast multiplexes and Blu-ray clips
+/// carry a few hundred at most; a crafted program map can declare tens of
+/// thousands across its programs.
+const ELEMENTARY_STREAM_LIMIT: usize = 4096;
+/// Read buffer size for packet-sized TS reads.
+const READ_BUFFER_BYTES: u64 = 64 * 1024;
 const STREAM_PROBE_MAX_BYTES_PER_PID: u64 = 256 * 1024;
 const STREAM_PROBE_ROLLING_KEEP_BYTES: usize = 64 * 1024;
 const DOVI_VIDEO_STREAM_DESCRIPTOR: u8 = 0xB0;
@@ -52,15 +58,33 @@ pub(crate) fn parse_ts_source(
     profile: ProbeDepth,
 ) -> Result<RawContainer, ProbeError> {
     // PAT/PMT and timestamp scans consume individual 188-byte packets. Coalesce
-    // their reads before reaching a file or disc extent on network storage.
-    let mut file = std::io::BufReader::with_capacity(64 * 1024, source);
-    let file_size = file.seek(SeekFrom::End(0)).map_err(ProbeError::from)?;
+    // their reads before reaching a file or disc extent on network storage. A
+    // buffer one byte longer than the file already holds all of it, and every
+    // read it makes still asks for more than remains, so the reads the source
+    // sees are the same as with the full-size buffer.
+    let file_size = source.seek(SeekFrom::End(0)).map_err(ProbeError::from)?;
+    let mut file = std::io::BufReader::with_capacity(
+        READ_BUFFER_BYTES.min(file_size.saturating_add(1)) as usize,
+        source,
+    );
     file.seek(SeekFrom::Start(0)).map_err(ProbeError::from)?;
 
-    let layout = detect_ts_packet_layout(&mut file)?;
-    let es_entries = parse_program_map(&mut file, layout)?;
+    let layout = detect_ts_packet_layout(&mut file, file_size)?;
+    let mut es_entries = parse_program_map(&mut file, layout)?;
+    let inventory_truncated = es_entries.len() > ELEMENTARY_STREAM_LIMIT;
+    es_entries.truncate(ELEMENTARY_STREAM_LIMIT);
     let mut tracks: Vec<RawTrack> = es_entries.iter().map(build_track).collect();
     let mut report = crate::ProbeReport::default();
+    if inventory_truncated {
+        report.status = crate::ProbeStatus::Incomplete;
+        report.warnings.push(crate::ProbeWarning {
+            code: warning::TS_ELEMENTARY_STREAM_LIMIT.into(),
+            message: format!(
+                "The program map declares more than {ELEMENTARY_STREAM_LIMIT} elementary streams; only the first {ELEMENTARY_STREAM_LIMIT} are reported"
+            ),
+            ..Default::default()
+        });
+    }
     let mut caption_services = Vec::new();
 
     if profile != ProbeDepth::Identify {
@@ -1100,6 +1124,7 @@ fn estimate_duration<T: Read + Seek>(
         .or_else(|| {
             find_pts_near(
                 stream,
+                file_size,
                 0,
                 true,
                 &pes_pid_lookup,
@@ -1110,6 +1135,7 @@ fn estimate_duration<T: Read + Seek>(
         .or_else(|| {
             find_pts_near(
                 stream,
+                file_size,
                 0,
                 true,
                 &pes_pid_lookup,
@@ -1149,6 +1175,7 @@ fn estimate_duration_from_first_pts<T: Read + Seek>(
     let tail_start = file_size.saturating_sub(layout.raw_packet_size as u64 * packet_limit as u64);
     let last_pts = find_pts_near(
         stream,
+        file_size,
         tail_start,
         false,
         pes_pid_lookup,
@@ -1197,6 +1224,7 @@ fn is_pes_stream_type(stream_type: u8) -> bool {
 
 fn find_pts_near<T: Read + Seek>(
     stream: &mut T,
+    file_size: u64,
     start_pos: u64,
     first_match: bool,
     pes_pid_lookup: &[bool; TS_PID_COUNT],
@@ -1205,7 +1233,12 @@ fn find_pts_near<T: Read + Seek>(
 ) -> Option<u64> {
     let aligned_start = start_pos - (start_pos % layout.raw_packet_size as u64);
     stream.seek(SeekFrom::Start(aligned_start)).ok()?;
-    let read_size = max_packets * layout.raw_packet_size;
+    // One byte past the end still makes the final read that finds the end, so
+    // a short file reads exactly as it would into a full-size buffer.
+    let read_size = (max_packets * layout.raw_packet_size).min(
+        usize::try_from(file_size.saturating_sub(aligned_start).saturating_add(1))
+            .unwrap_or(usize::MAX),
+    );
     let mut data = vec![0u8; read_size];
     let n = read_full(stream, &mut data);
     data.truncate(n);
@@ -1343,11 +1376,16 @@ fn resync<T: Read + Seek>(
     Ok(false)
 }
 
-fn detect_ts_packet_layout<T: Read + Seek>(stream: &mut T) -> Result<TsPacketLayout, ProbeError> {
+fn detect_ts_packet_layout<T: Read + Seek>(
+    stream: &mut T,
+    file_size: u64,
+) -> Result<TsPacketLayout, ProbeError> {
     let current = stream.stream_position().map_err(ProbeError::from)?;
     stream.seek(SeekFrom::Start(0)).map_err(ProbeError::from)?;
 
-    let probe_len = TS_FEC_PACKET_SIZE * 100;
+    // As with timestamp scans, one byte past the end reads what the full probe would.
+    let probe_len = (TS_FEC_PACKET_SIZE * 100)
+        .min(usize::try_from(file_size.saturating_add(1)).unwrap_or(usize::MAX));
     let mut probe = vec![0u8; probe_len];
     let n = read_full(stream, &mut probe);
     probe.truncate(n);

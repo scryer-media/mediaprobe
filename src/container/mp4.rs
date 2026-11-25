@@ -13,7 +13,7 @@ mod timing;
 use boxes::*;
 use moov::*;
 use samples::*;
-use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::io::{Cursor, Read, SeekFrom};
 use tables::*;
 
 use core::range::Range;
@@ -54,6 +54,46 @@ struct PreparedMp4 {
 struct ParsedMp4Track {
     track_id: Option<u32>,
     raw: RawTrack,
+}
+
+/// The movie's tracks with each id's first track found once, so a lookup per
+/// parsed track or chapter reference costs the same however many tracks the
+/// movie declares.
+pub(super) struct TrackLookup<'a> {
+    tracks: &'a [mp4parse::Track],
+    first_by_id: HashMap<Option<u32>, usize>,
+    first_audio: Option<usize>,
+}
+
+impl<'a> TrackLookup<'a> {
+    fn new(tracks: &'a [mp4parse::Track]) -> Self {
+        let mut first_by_id = HashMap::new();
+        for (index, track) in tracks.iter().enumerate() {
+            first_by_id.entry(track.track_id).or_insert(index);
+        }
+        Self {
+            tracks,
+            first_by_id,
+            first_audio: tracks
+                .iter()
+                .position(|track| matches!(track.track_type, TrackType::Audio)),
+        }
+    }
+
+    /// The position of the first track whose id is `id`.
+    fn position(&self, id: Option<u32>) -> Option<usize> {
+        self.first_by_id.get(&id).copied()
+    }
+
+    /// The first track whose id is `id`.
+    pub(super) fn by_id(&self, id: Option<u32>) -> Option<&'a mp4parse::Track> {
+        self.position(id).map(|index| &self.tracks[index])
+    }
+
+    /// The first audio track.
+    pub(super) fn first_audio(&self) -> Option<&'a mp4parse::Track> {
+        self.first_audio.map(|index| &self.tracks[index])
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -121,7 +161,8 @@ pub(crate) fn parse_mp4_source(
         }
         Err(error) => return Err(ProbeError::Malformed(format!("mp4 parse: {error}"))),
     };
-    let num_chapters = match count_mp4_chapters(&parsed_metadata.chapters, &ctx) {
+    let lookup = TrackLookup::new(&ctx.tracks);
+    let num_chapters = match count_mp4_chapters(&parsed_metadata.chapters, &lookup) {
         0 => None,
         count => Some(count),
     };
@@ -130,7 +171,8 @@ pub(crate) fn parse_mp4_source(
     let mut duration_seconds =
         mp4_runtime_seconds(&ctx, &metadata_by_track, format_duration_seconds);
 
-    let (mut tracks, seen_track_ids) = build_mp4_tracks(&ctx, &metadata_by_track);
+    let (mut tracks, seen_track_ids, mut tracks_truncated) =
+        build_mp4_tracks(&ctx, &metadata_by_track);
     let mut fragment_result = timing::fragments(&prepared.metadata);
     if prepared.budget_exhausted {
         // A prefix of the fragment sequence cannot establish full-file timing
@@ -148,10 +190,8 @@ pub(crate) fn parse_mp4_source(
         else {
             continue;
         };
-        let scale = ctx
-            .tracks
-            .iter()
-            .find(|track| track.track_id == Some(id))
+        let scale = lookup
+            .by_id(Some(id))
             .and_then(|track| track.timescale)
             .map(|TrackTimeScale(scale, _)| scale)
             .filter(|scale| *scale > 0);
@@ -180,7 +220,8 @@ pub(crate) fn parse_mp4_source(
             }
         }
     }
-    append_metadata_only_tracks(&metadata_by_track, &seen_track_ids, &mut tracks);
+    tracks_truncated |=
+        append_metadata_only_tracks(&metadata_by_track, &seen_track_ids, &mut tracks);
     let overall_bitrate_bps = duration_seconds
         .filter(|duration| *duration > 0.0)
         .map(|duration| (prepared.file_len_hint as f64 * 8.0 / duration) as u64);
@@ -189,21 +230,34 @@ pub(crate) fn parse_mp4_source(
     if prepared.budget_exhausted {
         report_container_budget(&mut report);
     }
+    if tracks_truncated {
+        report.status = crate::ProbeStatus::Incomplete;
+        report.budget_exhausted = true;
+        report.warnings.push(crate::ProbeWarning {
+            code: warning::MP4_CONTAINER_SCAN_BUDGET.into(),
+            message: format!(
+                "MP4 track inventory stops after {} tracks; the tracks past it are not reported",
+                super::MAX_TRACKS
+            ),
+            ..Default::default()
+        });
+    }
+    // Tracks may share an id, and so a table: each table is summed once.
+    let mut long_presentation_offsets = vec![None; ctx.tracks.len()];
     for parsed in &tracks {
         if parsed.raw.kind == TrackKind::Video
-            && ctx
-                .tracks
-                .iter()
-                .find(|track| track.track_id == parsed.track_id)
-                .and_then(|track| track.ctts.as_ref())
-                .is_some_and(|offsets| {
-                    offsets
-                        .samples
-                        .iter()
-                        .map(|entry| u64::from(entry.sample_count))
-                        .sum::<u64>()
-                        > 4096
+            && lookup.position(parsed.track_id).is_some_and(|index| {
+                *long_presentation_offsets[index].get_or_insert_with(|| {
+                    ctx.tracks[index].ctts.as_ref().is_some_and(|offsets| {
+                        offsets
+                            .samples
+                            .iter()
+                            .map(|entry| u64::from(entry.sample_count))
+                            .sum::<u64>()
+                            > 4096
+                    })
                 })
+            })
         {
             sample_probe_warning(
                 &mut report,
@@ -213,7 +267,8 @@ pub(crate) fn parse_mp4_source(
             );
         }
     }
-    let caption_services = scan_mp4_sample_probes(source, &ctx, &mut tracks, profile, &mut report);
+    let caption_services =
+        scan_mp4_sample_probes(source, &lookup, &mut tracks, profile, &mut report);
     let mut chapters = parsed_metadata.chapters.entries;
     if let Some(last) = chapters.last_mut() {
         last.end_seconds = duration_seconds.filter(|end| *end >= last.start_seconds);
@@ -222,10 +277,8 @@ pub(crate) fn parse_mp4_source(
         let mut remaining = 4096;
         let mut bytes_left = 4 * 1024 * 1024;
         for id in &parsed_metadata.chapters.chapter_track_ids {
-            let result = ctx
-                .tracks
-                .iter()
-                .find(|track| track.track_id == Some(*id))
+            let result = lookup
+                .by_id(Some(*id))
                 .filter(|_| {
                     metadata_by_track
                         .get(id)
@@ -445,7 +498,7 @@ fn prepare_mp4_metadata(
     })
 }
 
-fn prepare_mp4_metadata_from_reader<R: Read + Seek>(
+fn prepare_mp4_metadata_from_reader<R: crate::source::MediaSource>(
     reader: &mut R,
 ) -> Result<(Vec<u8>, u64, bool), ProbeError> {
     let mut output = Vec::new();
@@ -520,9 +573,8 @@ fn prepare_mp4_metadata_from_reader<R: Read + Seek>(
             }
             output.extend_from_slice(&header_bytes);
             let payload_size = box_size.saturating_sub(header.header_size);
-            let mut buf = vec![0_u8; payload_size];
-            reader.read_exact(&mut buf).map_err(ProbeError::from)?;
-            output.extend_from_slice(&buf);
+            crate::source::read_exact_append(reader, &mut output, payload_size)
+                .map_err(ProbeError::from)?;
             pos = start.saturating_add(header.size);
         } else if header.size == 0 {
             break;
@@ -673,12 +725,15 @@ fn write_box_size_at(data: &mut [u8], box_start: usize, header_size: usize, new_
     }
 }
 
+/// The movie's tracks, at most [`MAX_TRACKS`](super::MAX_TRACKS) of them,
+/// with the ids of every track that has a kind and whether any were left out.
 fn build_mp4_tracks(
     ctx: &MediaContext,
     metadata_by_track: &HashMap<u32, Mp4TrackMetadata>,
-) -> (Vec<ParsedMp4Track>, HashSet<u32>) {
+) -> (Vec<ParsedMp4Track>, HashSet<u32>, bool) {
     let mut parsed = Vec::new();
     let mut seen_track_ids = HashSet::new();
+    let mut truncated = false;
 
     for track in &ctx.tracks {
         let meta = track
@@ -688,6 +743,12 @@ fn build_mp4_tracks(
             Some(kind) => kind,
             None => continue,
         };
+        if parsed.len() == super::MAX_TRACKS {
+            // Left out, but still seen, so no metadata-only track stands in.
+            seen_track_ids.extend(track.track_id);
+            truncated = true;
+            continue;
+        }
 
         let mut raw = RawTrack {
             metadata: meta.map(|meta| meta.details.clone()).unwrap_or_default(),
@@ -820,20 +881,26 @@ fn build_mp4_tracks(
         });
     }
 
-    (parsed, seen_track_ids)
+    (parsed, seen_track_ids, truncated)
 }
 
+/// Adds the subtitle tracks only the metadata describes, up to
+/// [`MAX_TRACKS`](super::MAX_TRACKS) tracks in all; returns whether any were
+/// left out.
 fn append_metadata_only_tracks(
     metadata_by_track: &HashMap<u32, Mp4TrackMetadata>,
     seen_track_ids: &HashSet<u32>,
     tracks: &mut Vec<ParsedMp4Track>,
-) {
+) -> bool {
     for (&track_id, metadata) in metadata_by_track {
         if seen_track_ids.contains(&track_id) {
             continue;
         }
         if track_kind_from_metadata(metadata) != Some(TrackKind::Subtitle) {
             continue;
+        }
+        if tracks.len() >= super::MAX_TRACKS {
+            return true;
         }
 
         let codec_id = metadata
@@ -862,6 +929,7 @@ fn append_metadata_only_tracks(
             },
         });
     }
+    false
 }
 
 fn track_kind_from_mp4_sources(
@@ -945,7 +1013,7 @@ fn parse_mp4_metadata(data: &[u8]) -> ParsedMp4Metadata {
     metadata
 }
 
-fn count_mp4_chapters(metadata: &Mp4ChapterMetadata, ctx: &MediaContext) -> i32 {
+fn count_mp4_chapters(metadata: &Mp4ChapterMetadata, lookup: &TrackLookup) -> i32 {
     if let Some(count) = metadata.chpl_count {
         return count;
     }
@@ -954,9 +1022,8 @@ fn count_mp4_chapters(metadata: &Mp4ChapterMetadata, ctx: &MediaContext) -> i32 
         .chapter_track_ids
         .iter()
         .filter_map(|track_id| {
-            ctx.tracks
-                .iter()
-                .find(|track| track.track_id == Some(*track_id))
+            lookup
+                .by_id(Some(*track_id))
                 .and_then(mp4_track_sample_count)
         })
         .sum()

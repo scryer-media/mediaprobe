@@ -13,7 +13,7 @@ pub(super) struct Mp4SampleReadKey {
 
 pub(super) fn scan_mp4_sample_probes(
     file: &mut dyn crate::source::MediaSource,
-    ctx: &MediaContext,
+    lookup: &TrackLookup,
     tracks: &mut [ParsedMp4Track],
     profile: ProbeDepth,
     report: &mut crate::ProbeReport,
@@ -57,13 +57,13 @@ pub(super) fn scan_mp4_sample_probes(
     let mut captions = Vec::new();
 
     if audio_probe_needed {
-        scan_mp4_audio_profiles_with_cache(file, &mut sample_cache, ctx, tracks, report);
+        scan_mp4_audio_profiles_with_cache(file, &mut sample_cache, lookup, tracks, report);
     }
     if hdr10plus_probe_needed {
         scan_mp4_video_metadata_with_cache(
             file,
             &mut sample_cache,
-            ctx,
+            lookup,
             tracks,
             report,
             &mut captions,
@@ -75,7 +75,7 @@ pub(super) fn scan_mp4_sample_probes(
 pub(super) fn scan_mp4_video_metadata_with_cache(
     file: &mut dyn crate::source::MediaSource,
     sample_cache: &mut HashMap<Mp4SampleReadKey, Vec<u8>>,
-    ctx: &MediaContext,
+    lookup: &TrackLookup,
     tracks: &mut [ParsedMp4Track],
     report: &mut crate::ProbeReport,
     captions: &mut Vec<crate::CaptionService>,
@@ -104,7 +104,7 @@ pub(super) fn scan_mp4_video_metadata_with_cache(
         }
         let ranges = parsed
             .track_id
-            .and_then(|id| ctx.tracks.iter().find(|track| track.track_id == Some(id)))
+            .and_then(|id| lookup.by_id(Some(id)))
             .and_then(track_sample_ranges);
         let Some((ranges, complete)) = ranges else {
             sample_probe_warning(
@@ -210,18 +210,25 @@ pub(super) fn track_sample_ranges_bounded(
     if mapping.first()?.first_chunk != 1 {
         return None;
     }
+    // The count is only compared with how many samples were taken, never
+    // more than `limit`, so it is summed only until it passes that. A track
+    // whose table is shared or long then costs no more than its first
+    // entries. (A sum that overflowed would need billions of entries, far
+    // more than the metadata budget can hold.)
+    let enough = u64::from(limit) + 1;
     let count = if sizes.sample_size == 0 {
         sizes.sample_sizes.len() as u64
     } else {
-        track
-            .stts
-            .as_ref()?
-            .samples
-            .iter()
-            .try_fold(0_u64, |sum, sample| {
-                sum.checked_add(u64::from(sample.sample_count))
-            })?
-    };
+        let mut sum = 0_u64;
+        for sample in &track.stts.as_ref()?.samples {
+            sum = sum.checked_add(u64::from(sample.sample_count))?;
+            if sum >= enough {
+                break;
+            }
+        }
+        sum
+    }
+    .min(enough);
     let mut ranges = Vec::new();
     let mut map_index = 0;
     let mut sample_index = 0;
@@ -270,7 +277,7 @@ pub(super) fn track_sample_ranges_bounded(
 pub(super) fn scan_mp4_audio_profiles_with_cache(
     file: &mut dyn crate::source::MediaSource,
     sample_cache: &mut HashMap<Mp4SampleReadKey, Vec<u8>>,
-    ctx: &MediaContext,
+    lookup: &TrackLookup,
     tracks: &mut [ParsedMp4Track],
     report: &mut crate::ProbeReport,
 ) {
@@ -292,16 +299,8 @@ pub(super) fn scan_mp4_audio_profiles_with_cache(
 
         let Some(mp4_track) = parsed_track
             .track_id
-            .and_then(|track_id| {
-                ctx.tracks
-                    .iter()
-                    .find(|track| track.track_id == Some(track_id))
-            })
-            .or_else(|| {
-                ctx.tracks
-                    .iter()
-                    .find(|track| matches!(track.track_type, TrackType::Audio))
-            })
+            .and_then(|track_id| lookup.by_id(Some(track_id)))
+            .or_else(|| lookup.first_audio())
         else {
             continue;
         };
@@ -413,8 +412,7 @@ pub(super) fn read_cached_mp4_range(
         Entry::Occupied(entry) => Some(entry.get().clone()),
         Entry::Vacant(entry) => {
             file.seek(SeekFrom::Start(offset)).ok()?;
-            let mut bytes = vec![0_u8; size];
-            file.read_exact(&mut bytes).ok()?;
+            let bytes = crate::source::read_exact_vec(file, size).ok()?;
             Some(entry.insert(bytes).clone())
         }
     }

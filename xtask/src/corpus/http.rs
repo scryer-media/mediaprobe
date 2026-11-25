@@ -5,7 +5,9 @@
 //!   no environment variable can turn it on.
 //! - Redirects are never followed: a CDN that redirects is misconfigured, and
 //!   following one would let a response choose where the next request goes.
-//! - Every body is capped at [`MAX_BODY`].
+//! - Every body is capped: a fixture at the size its manifest pins (and
+//!   never above [`MAX_BODY`]), a document at [`MAX_DOCUMENT`]. A longer body
+//!   fails without being retried.
 //! - Transport errors, 429 and 5xx are retried a bounded number of times.
 //! - A PUT is conditional (`If-None-Match: *`), so an object, once written,
 //!   is never overwritten. A 412 means it already exists; the caller decides
@@ -15,11 +17,15 @@ use std::io::{Read as _, Write as _};
 use std::path::Path;
 use std::time::Duration;
 
-use super::{Context as _, Result, error, fail};
+use super::{Context as _, Result, fail};
 
 /// No fixture, manifest or bundle is near this size; anything larger is a
 /// misbehaving server.
 pub(crate) const MAX_BODY: u64 = 1 << 30;
+/// Manifests, Sigstore bundles and provenance records are read whole into
+/// memory before their digest or signature is checked. The largest is a few
+/// hundred KiB; a body past this cap is refused before it is buffered.
+pub(crate) const MAX_DOCUMENT: u64 = 16 << 20;
 const ATTEMPTS: u32 = 4;
 
 #[derive(Debug, Clone)]
@@ -114,7 +120,8 @@ impl Client {
         fail(format!("{what}: gave up after {ATTEMPTS} attempts: {last}"))
     }
 
-    /// GET a small document. `None` is a 404; any other non-2xx fails.
+    /// GET a small document. `None` is a 404; any other non-2xx fails, and
+    /// so does a body longer than [`MAX_DOCUMENT`].
     pub(crate) fn get_bytes(&self, url: &str) -> Result<Option<Vec<u8>>> {
         self.check_url(url)?;
         self.retrying(&format!("GET {url}"), || {
@@ -125,15 +132,22 @@ impl Client {
             let status = response.status().as_u16();
             match status {
                 200 => {
-                    let body = response
+                    // One byte past the cap is enough to tell an oversized
+                    // body apart; nothing beyond it is read or kept.
+                    let mut bytes = Vec::new();
+                    let read = response
                         .into_body()
                         .into_with_config()
-                        .limit(MAX_BODY)
-                        .read_to_vec()
-                        .map_err(|e| error(format!("GET {url}: {e}")));
-                    match body {
-                        Ok(bytes) => Ok(Attempt::Done(Some(bytes))),
-                        Err(e) => Ok(Attempt::Retry(e.to_string())),
+                        .limit(MAX_DOCUMENT + 1)
+                        .reader()
+                        .take(MAX_DOCUMENT + 1)
+                        .read_to_end(&mut bytes);
+                    match read {
+                        Err(e) => Ok(Attempt::Retry(format!("GET {url}: {e}"))),
+                        Ok(_) if bytes.len() as u64 > MAX_DOCUMENT => fail(format!(
+                            "GET {url}: longer than the {MAX_DOCUMENT} bytes a document may have"
+                        )),
+                        Ok(_) => Ok(Attempt::Done(Some(bytes))),
                     }
                 }
                 404 => Ok(Attempt::Done(None)),
@@ -406,6 +420,31 @@ mod tests {
             client
                 .get_bytes(&format!("{}/always-down", server.base))
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn an_oversized_document_fails_once_without_being_buffered_whole() {
+        let server = serve(Box::new(|request| match request.path.as_str() {
+            "/at-cap" => (200, vec![], vec![b'a'; MAX_DOCUMENT as usize]),
+            _ => (200, vec![], vec![b'a'; MAX_DOCUMENT as usize + 1]),
+        }));
+        let client = Client::new(Policy::loopback_for_tests());
+        let at_cap = client
+            .get_bytes(&format!("{}/at-cap", server.base))
+            .unwrap()
+            .unwrap();
+        assert_eq!(at_cap.len() as u64, MAX_DOCUMENT);
+        let refused = client
+            .get_bytes(&format!("{}/oversized", server.base))
+            .unwrap_err()
+            .to_string();
+        assert!(refused.contains("longer than"), "{refused}");
+        let requests = server.requests.lock().unwrap();
+        assert_eq!(
+            requests.iter().filter(|r| r.path == "/oversized").count(),
+            1,
+            "an oversized body is refused, not retried"
         );
     }
 

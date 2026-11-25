@@ -375,7 +375,7 @@ pub(super) struct MkvRawScanner<R> {
     pub(super) pos: u64,
 }
 
-impl<R: Read + Seek> MkvRawScanner<R> {
+impl<R: crate::source::MediaSource> MkvRawScanner<R> {
     pub(super) fn new(mut reader: R) -> Result<Self, ProbeError> {
         let file_len = reader.seek(SeekFrom::End(0)).map_err(ProbeError::from)?;
         reader.seek(SeekFrom::Start(0)).map_err(ProbeError::from)?;
@@ -1128,9 +1128,16 @@ impl<R: Read + Seek> MkvRawScanner<R> {
     }
 
     pub(super) fn read_bytes(&mut self, size: u64) -> Result<Vec<u8>, ProbeError> {
-        let mut buf = vec![0_u8; size as usize];
-        self.read_exact(&mut buf).map_err(ProbeError::from)?;
-        Ok(buf)
+        // Read through the scanner so its position follows every byte read.
+        let allowance = self.reader.read_allowance();
+        let mut payload = Vec::new();
+        crate::source::read_exact_append_within(
+            self,
+            &mut payload,
+            usize::try_from(size).unwrap_or(usize::MAX),
+            allowance,
+        )?;
+        Ok(payload)
     }
 
     pub(super) fn position(&mut self) -> Result<u64, ProbeError> {
@@ -1158,7 +1165,7 @@ impl<R: Read> Read for MkvRawScanner<R> {
     }
 }
 
-pub(super) fn probe_mkv_deep_metadata<R: Read + Seek>(
+pub(super) fn probe_mkv_deep_metadata<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     frame_rate: Option<MkvFrameRateProbeRequest>,
     hdr10plus: Option<MkvHdr10PlusProbeRequest>,

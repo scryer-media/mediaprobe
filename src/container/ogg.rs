@@ -54,6 +54,9 @@ pub(crate) fn parse_ogg_source(
     let mut packet_count = 0_usize;
     let mut header_bytes = 0_usize;
     let mut tag_report = crate::ProbeReport::default();
+    // Every stream's comments share one allowance, so many streams cannot
+    // together hold more tags than the file may keep.
+    let mut tag_allowance = crate::tags::Allowance::new();
 
     while packet_count < MAX_HEADER_PACKETS && header_bytes <= MAX_HEADER_BYTES {
         let Some(packet) = reader.read_packet().map_err(ogg_error)? else {
@@ -78,7 +81,7 @@ pub(crate) fn parse_ogg_source(
         }
 
         if let Some(stream) = streams.get_mut(&serial) {
-            consume_header(stream, &packet.data, &mut tag_report)?;
+            consume_header(stream, &packet.data, &mut tag_allowance, &mut tag_report)?;
         }
         // All BOS pages precede secondary headers in a physical Ogg section.
         // Stop before buffering media packets once every codec header is known.
@@ -301,6 +304,7 @@ fn identify_stream(data: &[u8]) -> Result<Option<OggStream>, ProbeError> {
 fn consume_header(
     stream: &mut OggStream,
     data: &[u8],
+    tags: &mut crate::tags::Allowance,
     report: &mut crate::ProbeReport,
 ) -> Result<(), ProbeError> {
     if stream.headers_seen >= stream.headers_needed {
@@ -309,21 +313,21 @@ fn consume_header(
     match stream.codec {
         OggCodec::Theora { .. } => match stream.headers_seen {
             1 if data.starts_with(b"\x81theora") => {
-                apply_comments(&mut stream.track, &data[7..], report)?;
+                apply_comments(&mut stream.track, &data[7..], tags, report)?;
             }
             2 if data.starts_with(b"\x82theora") => {}
             _ => return Err(parse_error("invalid Theora header sequence")),
         },
         OggCodec::Vorbis { .. } => match stream.headers_seen {
             1 if data.starts_with(b"\x03vorbis") => {
-                apply_comments(&mut stream.track, &data[7..], report)?;
+                apply_comments(&mut stream.track, &data[7..], tags, report)?;
             }
             2 if data.starts_with(b"\x05vorbis") => {}
             _ => return Err(parse_error("invalid Vorbis header sequence")),
         },
         OggCodec::Opus => {
             if data.starts_with(b"OpusTags") {
-                apply_comments(&mut stream.track, &data[8..], report)?;
+                apply_comments(&mut stream.track, &data[8..], tags, report)?;
             }
             // A missing OpusTags packet is tolerated: the first audio packet
             // completes header discovery without being interpreted as comments.
@@ -332,7 +336,7 @@ fn consume_header(
             if !data.starts_with(b"\x03vorbis") {
                 return Err(parse_error("invalid OGM comment header"));
             }
-            apply_comments(&mut stream.track, &data[7..], report)?;
+            apply_comments(&mut stream.track, &data[7..], tags, report)?;
         }
     }
     stream.headers_seen += 1;
@@ -673,6 +677,7 @@ fn is_encoded_picture(key: &[u8]) -> bool {
 fn apply_comments(
     track: &mut RawTrack,
     data: &[u8],
+    tags: &mut crate::tags::Allowance,
     report: &mut crate::ProbeReport,
 ) -> Result<(), ProbeError> {
     let comments = parse_comments(data)?;
@@ -680,7 +685,7 @@ fn apply_comments(
     track.name = comments.name;
     for (key, value) in comments.entries {
         if !is_encoded_picture(key) {
-            crate::tags::insert(&mut track.metadata.tags, key, value, report);
+            tags.insert(&mut track.metadata.tags, key, value, report);
         }
     }
     Ok(())
@@ -744,8 +749,7 @@ fn read_stream_ends(
 ) -> Result<OggTail, ProbeError> {
     let start = file_len.saturating_sub(MAX_TAIL_BYTES);
     file.seek(SeekFrom::Start(start))?;
-    let mut bytes = vec![0; (file_len - start) as usize];
-    file.read_exact(&mut bytes)?;
+    let bytes = crate::source::read_exact_vec(file, (file_len - start) as usize)?;
     // A clipped prefix may be codec payload, including false capture patterns.
     // Establish one CRC-validated boundary before either packet or page parsing.
     let first_page = first_valid_tail_page(&bytes, start != 0)?;

@@ -2,7 +2,7 @@
 //! Payloads remain in place; only bounded filesystem metadata is read here.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::{self, Read, SeekFrom};
+use std::io::{self, SeekFrom};
 
 use crate::source::{Extent, ExtentSource, MediaSource};
 
@@ -10,6 +10,10 @@ const BLOCK: u64 = 2048;
 const METADATA_BUDGET: u64 = 32 * 1024 * 1024;
 const DIRECTORY_LIMIT: u64 = 4 * 1024 * 1024;
 const ENTRY_LIMIT: usize = 65_536;
+/// Bytes of inventory paths one image may build. Real discs need well under a
+/// MiB; deep trees of long names cannot multiply a few MiB of metadata into
+/// hundreds of MiB of repeated prefixes.
+const PATH_BUDGET: usize = 16 * 1024 * 1024;
 
 #[derive(Debug)]
 pub(super) enum ImageError {
@@ -51,6 +55,7 @@ struct Reader<'a> {
     source: &'a mut dyn MediaSource,
     remaining: u64,
     entries: usize,
+    path_bytes: usize,
 }
 impl Reader<'_> {
     fn read(&mut self, offset: u64, length: u64) -> Result<Vec<u8>> {
@@ -74,9 +79,25 @@ impl Reader<'_> {
             return Err(ImageError::Budget);
         }
         self.remaining -= file.length;
-        let mut bytes = vec![0; file.length as usize];
-        ExtentSource::new(self.source, file.extents.clone())?.read_exact(&mut bytes)?;
-        Ok(bytes)
+        read_file(self.source, file)
+    }
+    /// The inventory path of `name` inside `parent`, charged to the path budget.
+    fn path(&mut self, parent: &str, name: String) -> Result<String> {
+        let length = if parent.is_empty() {
+            name.len()
+        } else {
+            parent.len() + 1 + name.len()
+        };
+        self.path_bytes = self
+            .path_bytes
+            .checked_add(length)
+            .filter(|total| *total <= PATH_BUDGET)
+            .ok_or(ImageError::Budget)?;
+        Ok(if parent.is_empty() {
+            name
+        } else {
+            format!("{parent}/{name}")
+        })
     }
     fn entry(&mut self, depth: usize) -> Result<()> {
         self.entries += 1;
@@ -87,11 +108,30 @@ impl Reader<'_> {
     }
 }
 
+/// Reads a whole file whose length the caller has already budgeted. The extents
+/// are validated against the image before the buffer exists, and the buffer is
+/// never larger than the extents can fill.
+pub(super) fn read_file(source: &mut dyn MediaSource, file: &ImageFile) -> Result<Vec<u8>> {
+    let mut extents = ExtentSource::new(source, file.extents.clone())?;
+    let available = file.length.min(extents.len());
+    let bytes = crate::source::read_exact_vec(&mut extents, available as usize)?;
+    if available < file.length {
+        // Reading on would return nothing more; fail as that read would.
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::UnexpectedEof,
+            "failed to fill whole buffer",
+        )
+        .into());
+    }
+    Ok(bytes)
+}
+
 pub(super) fn open(source: &mut dyn MediaSource) -> Result<Image> {
     let mut reader = Reader {
         source,
         remaining: METADATA_BUDGET,
         entries: 0,
+        path_bytes: 0,
     };
     let sectors = reader.source.len() / BLOCK;
     // UDF takes precedence over the limited ISO bridge directory tree.
@@ -288,11 +328,7 @@ fn iso_directory(
         if name.is_empty() {
             continue;
         }
-        let key = if path.is_empty() {
-            name
-        } else {
-            format!("{path}/{name}")
-        };
+        let key = reader.path(path, name)?;
         if pending.as_ref().is_some_and(|name| name != &key) {
             return Err(ImageError::Malformed("interrupted ISO multi-extent file"));
         }
@@ -967,11 +1003,7 @@ fn udf_directory(
             _ => return Err(ImageError::Unsupported("UDF filename compression")),
         };
         let name = filename(&name)?;
-        let key = if path.is_empty() {
-            name
-        } else {
-            format!("{path}/{name}")
-        };
+        let key = reader.path(path, name)?;
         let (child, part, _) = long_ad(fid, 20)?;
         if fid[18] & 2 != 0 {
             udf_directory(reader, maps, part, child, &key, depth + 1, visited, files)?;
@@ -991,6 +1023,75 @@ fn udf_directory(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Read;
+    #[test]
+    fn whole_file_reads_validate_extents_before_reserving_a_buffer() {
+        let mut image = std::io::Cursor::new((0..64_u8).collect::<Vec<_>>());
+        let inside = |offset, length| Extent { offset, length };
+        let file = ImageFile {
+            length: 12,
+            extents: vec![inside(4, 8), inside(40, 4)],
+        };
+        assert_eq!(
+            read_file(&mut image, &file).unwrap(),
+            [4, 5, 6, 7, 8, 9, 10, 11, 40, 41, 42, 43]
+        );
+        // An extent outside the image fails before anything is read.
+        image.set_position(0);
+        let outside = ImageFile {
+            length: 4 * 1024 * 1024,
+            extents: vec![inside(60, 8)],
+        };
+        assert!(matches!(
+            read_file(&mut image, &outside),
+            Err(ImageError::Io(_))
+        ));
+        assert_eq!(image.position(), 0);
+        // A declared length the extents cannot fill fails as a whole read did.
+        let short = ImageFile {
+            length: 4 * 1024 * 1024,
+            extents: vec![inside(8, 16)],
+        };
+        let mut whole = vec![0; short.length as usize];
+        let expected = ExtentSource::new(&mut image, short.extents.clone())
+            .unwrap()
+            .read_exact(&mut whole)
+            .unwrap_err();
+        let Err(ImageError::Io(error)) = read_file(&mut image, &short) else {
+            panic!("a short file must fail");
+        };
+        assert_eq!(error.kind(), expected.kind());
+        assert_eq!(error.to_string(), expected.to_string());
+    }
+    #[test]
+    fn inventory_paths_are_charged_until_the_path_budget_is_spent() {
+        let mut image = std::io::Cursor::new(Vec::<u8>::new());
+        let mut reader = Reader {
+            source: &mut image,
+            remaining: METADATA_BUDGET,
+            entries: 0,
+            path_bytes: 0,
+        };
+        assert_eq!(reader.path("", "BDMV".into()).unwrap(), "BDMV");
+        assert_eq!(
+            reader.path("BDMV", "PLAYLIST".into()).unwrap(),
+            "BDMV/PLAYLIST"
+        );
+        assert_eq!(reader.path_bytes, 4 + 13);
+        let parent = "D".repeat(16 * 1024);
+        let name = "N".repeat(254);
+        let each = parent.len() + 1 + name.len();
+        let mut built = 0;
+        while reader.path(&parent, name.clone()).is_ok() {
+            built += 1;
+        }
+        assert_eq!(built, (PATH_BUDGET - 17) / each);
+        assert!(reader.path_bytes <= PATH_BUDGET);
+        assert!(matches!(
+            reader.path("", "x".repeat(PATH_BUDGET)),
+            Err(ImageError::Budget)
+        ));
+    }
     #[test]
     fn maps_ranges_across_split_extents_and_rejects_overflow() {
         let extents = [

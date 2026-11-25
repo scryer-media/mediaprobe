@@ -82,8 +82,7 @@ pub(super) fn quicktime(
             return Err(invalid);
         }
         *bytes_left = bytes_left.checked_sub(length).ok_or(budget)?;
-        let mut text = vec![0; length];
-        source.read_exact(&mut text).map_err(|_| invalid)?;
+        let text = crate::source::read_exact_vec(source, length).map_err(|_| invalid)?;
         let title =
             decode_title(&text).ok_or(("Invalid QuickTime chapter text encoding", false))?;
         chapters.push(Chapter {
@@ -103,6 +102,7 @@ pub(super) fn quicktime(
         u64::from(movie_scale.ok_or(invalid)?),
         scale,
         remaining,
+        bytes_left,
     )
 }
 
@@ -180,6 +180,7 @@ fn apply_edits(
     movie_scale: u64,
     scale: u64,
     remaining: &mut usize,
+    bytes_left: &mut usize,
 ) -> Result<Vec<Chapter>, (&'static str, bool)> {
     let invalid = (
         "QuickTime chapter edit timeline could not be resolved",
@@ -219,11 +220,14 @@ fn apply_edits(
             if input >= output_end {
                 continue;
             }
-            // Repeated edits can expand a title's chapter inventory.
+            // Repeated edits can expand a title's chapter inventory, and each
+            // repeat copies its title, so both draw on the inventory budgets.
             if output.len() >= chapters.len() {
-                *remaining = remaining
-                    .checked_sub(1)
-                    .ok_or(("QuickTime chapter edit expansion exceeds budget", true))?;
+                let expansion = ("QuickTime chapter edit expansion exceeds budget", true);
+                *remaining = remaining.checked_sub(1).ok_or(expansion)?;
+                *bytes_left = bytes_left
+                    .checked_sub(chapter.title.as_ref().map_or(0, String::len))
+                    .ok_or(expansion)?;
             }
             output.push(Chapter {
                 id: format!("{}:{edit_index}", chapter.id),
@@ -276,7 +280,7 @@ mod tests {
                 rate: 65536,
             },
         ];
-        let mapped = apply_edits(&chapters, &edits, 1000, 1000, &mut 10).unwrap();
+        let mapped = apply_edits(&chapters, &edits, 1000, 1000, &mut 10, &mut 1024).unwrap();
         assert_eq!(
             (mapped[0].start_seconds, mapped[0].end_seconds),
             (0.5, Some(1.5))
@@ -292,7 +296,7 @@ mod tests {
             rate: 65536,
         }; 2];
         assert!(
-            apply_edits(&chapters, &repeated, 1000, 1000, &mut 0)
+            apply_edits(&chapters, &repeated, 1000, 1000, &mut 0, &mut 1024)
                 .unwrap_err()
                 .1
         );
@@ -306,9 +310,42 @@ mod tests {
                 }],
                 1000,
                 1000,
-                &mut 10
+                &mut 10,
+                &mut 1024
             )
             .is_err()
+        );
+    }
+
+    #[test]
+    fn repeated_edits_charge_copied_titles_against_the_text_budget() {
+        use super::super::timing::Edit;
+        let chapters = vec![Chapter {
+            id: "1".into(),
+            title: Some("x".repeat(1000)),
+            start_seconds: 0.0,
+            end_seconds: Some(1.0),
+        }];
+        let repeat = Edit {
+            duration: 1000,
+            media_time: 0,
+            rate: 65536,
+        };
+        let (mut remaining, mut bytes_left) = (10, 2500);
+        let mapped = apply_edits(
+            &chapters,
+            &[repeat; 3],
+            1000,
+            1000,
+            &mut remaining,
+            &mut bytes_left,
+        )
+        .unwrap();
+        assert_eq!(mapped.len(), 3);
+        assert_eq!((remaining, bytes_left), (8, 500));
+        assert_eq!(
+            apply_edits(&chapters, &[repeat; 4], 1000, 1000, &mut 10, &mut 2500),
+            Err(("QuickTime chapter edit expansion exceeds budget", true))
         );
     }
 

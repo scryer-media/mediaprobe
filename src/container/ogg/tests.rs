@@ -657,7 +657,13 @@ fn comments_become_stream_tags_without_encoded_pictures() {
     }
     let mut track = RawTrack::default();
     let mut report = crate::ProbeReport::default();
-    apply_comments(&mut track, &comments, &mut report).unwrap();
+    apply_comments(
+        &mut track,
+        &comments,
+        &mut crate::tags::Allowance::new(),
+        &mut report,
+    )
+    .unwrap();
     assert_eq!(
         track.metadata.tags.into_iter().collect::<Vec<_>>(),
         [
@@ -667,4 +673,72 @@ fn comments_become_stream_tags_without_encoded_pictures() {
     );
     assert_eq!(track.name.as_deref(), Some("Synthetic Theme"));
     assert!(report.warnings.is_empty());
+}
+
+#[test]
+fn comments_across_streams_share_the_file_tag_allowance() {
+    use ogg::{PacketWriteEndInfo, PacketWriter};
+    let opus = |streams: u32, tags_per_stream: usize| {
+        let value = "v".repeat(1000);
+        let mut comments = Vec::new();
+        comments.extend_from_slice(&3_u32.to_le_bytes());
+        comments.extend_from_slice(b"lib");
+        comments.extend_from_slice(&(tags_per_stream as u32).to_le_bytes());
+        for index in 0..tags_per_stream {
+            let entry = format!("KEY{index:03}={value}");
+            comments.extend_from_slice(&(entry.len() as u32).to_le_bytes());
+            comments.extend_from_slice(entry.as_bytes());
+        }
+        let mut packet = b"OpusTags".to_vec();
+        packet.extend_from_slice(&comments);
+        let mut output = Cursor::new(Vec::new());
+        let mut writer = PacketWriter::new(&mut output);
+        for serial in 1..=streams {
+            writer
+                .write_packet(
+                    b"OpusHead\x01\x02\0\0\x80\xbb\0\0\0\0\0",
+                    serial,
+                    PacketWriteEndInfo::EndPage,
+                    0,
+                )
+                .unwrap();
+        }
+        for serial in 1..=streams {
+            writer
+                .write_packet(packet.clone(), serial, PacketWriteEndInfo::EndPage, 0)
+                .unwrap();
+        }
+        drop(writer);
+        output.into_inner()
+    };
+    let tag_bytes = |raw: &RawContainer| {
+        raw.tracks
+            .iter()
+            .flat_map(|track| &track.metadata.tags)
+            .map(|(key, value)| key.len() + value.len())
+            .sum::<usize>()
+    };
+    let truncated = |raw: &RawContainer| {
+        raw.details
+            .report
+            .warnings
+            .iter()
+            .any(|warning| warning.code == crate::warning::TAGS_TRUNCATED)
+    };
+
+    let within = parse(opus(2, 64));
+    assert_eq!(within.tracks.len(), 2);
+    assert!(
+        within
+            .tracks
+            .iter()
+            .all(|track| track.metadata.tags.len() == 64)
+    );
+    assert!(!truncated(&within));
+
+    let past = parse(opus(16, 64));
+    assert_eq!(past.tracks.len(), 16);
+    assert!(tag_bytes(&past) <= crate::tags::MAX_FILE_BYTES);
+    assert!(tag_bytes(&past) > crate::tags::MAX_FILE_BYTES - 1006);
+    assert!(truncated(&past));
 }

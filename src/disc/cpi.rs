@@ -8,7 +8,11 @@ const MAX_POINTS: usize = 131_072;
 #[derive(Clone)]
 pub(super) struct EntryMap {
     pub pid: u16,
+    /// Access points in strictly increasing packet order.
     points: Vec<Point>,
+    /// Ascending indices `i` whose successor does not advance in time, so a
+    /// range can find a timing reset without walking its points.
+    resets: Vec<usize>,
 }
 #[derive(Clone, Copy)]
 struct Point {
@@ -115,12 +119,25 @@ pub(super) fn parse(data: &[u8], source_packets: u32) -> Result<Vec<EntryMap>> {
                 points.push(Point { packet, time });
             }
         }
-        maps.push(EntryMap { pid, points });
+        maps.push(EntryMap::new(pid, points));
     }
     Ok(maps)
 }
 
 impl EntryMap {
+    fn new(pid: u16, points: Vec<Point>) -> Self {
+        let resets = points
+            .windows(2)
+            .enumerate()
+            .filter(|(_, pair)| pair[0].time >= pair[1].time)
+            .map(|(index, _)| index)
+            .collect();
+        Self {
+            pid,
+            points,
+            resets,
+        }
+    }
     pub(super) fn range(
         &self,
         sequence: std::ops::Range<u32>,
@@ -139,13 +156,61 @@ impl EntryMap {
                 "CPI has no access point in selected clock sequence",
             ));
         }
+        // A reset between points `i` and `i + 1` lies inside the slice when
+        // `first <= i` and `i + 1 < end`.
+        let reset = self.resets.partition_point(|index| *index < first);
+        if self.resets.get(reset).is_some_and(|index| index + 1 < end) {
+            return Err(ImageError::Unsupported(
+                "CPI timing resets within selected clock sequence",
+            ));
+        }
+        // Times strictly increase across the slice, so both boundaries are
+        // binary searches. CPI times omit their low eight bits. Include the
+        // predecessor and the successor access unit boundary instead of
+        // guessing an exact frame cut.
+        let start = match points.partition_point(|point| point.time <= input) {
+            0 => sequence.start,
+            after => points[after - 1].packet,
+        };
+        let end = points
+            .get(points.partition_point(|point| point.time < output))
+            .map_or(sequence.end, |point| point.packet);
+        if end <= start {
+            return Err(ImageError::Malformed(
+                "CPI produces an empty playback range",
+            ));
+        }
+        Ok(start..end)
+    }
+    pub(super) fn point_count(&self) -> usize {
+        self.points.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The linear form this module used before resets were indexed.
+    fn linear_range(
+        points: &[Point],
+        sequence: std::ops::Range<u32>,
+        input: u32,
+        output: u32,
+    ) -> Result<std::ops::Range<u32>> {
+        let first = points.partition_point(|point| point.packet < sequence.start);
+        let end = points.partition_point(|point| point.packet < sequence.end);
+        let points = &points[first..end];
+        if points.is_empty() {
+            return Err(ImageError::Unsupported(
+                "CPI has no access point in selected clock sequence",
+            ));
+        }
         if points.windows(2).any(|pair| pair[0].time >= pair[1].time) {
             return Err(ImageError::Unsupported(
                 "CPI timing resets within selected clock sequence",
             ));
         }
-        // CPI times omit their low eight bits. Include the predecessor and the
-        // successor access unit boundary instead of guessing an exact frame cut.
         let start = points
             .iter()
             .rev()
@@ -162,7 +227,70 @@ impl EntryMap {
         }
         Ok(start..end)
     }
-    pub(super) fn point_count(&self) -> usize {
-        self.points.len()
+
+    fn outcome(result: Result<std::ops::Range<u32>>) -> String {
+        match result {
+            Ok(range) => format!("{range:?}"),
+            Err(error) => format!("{error:?}"),
+        }
+    }
+
+    #[test]
+    fn indexed_ranges_match_the_linear_scan() {
+        let mut state = 0x2545_f491_u32;
+        let mut next = |bound: u32| {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            state % bound
+        };
+        let mut checked = 0;
+        for _ in 0..200 {
+            let mut points = Vec::new();
+            let mut packet = next(4);
+            let mut time = next(50);
+            for _ in 0..1 + next(40) {
+                points.push(Point { packet, time });
+                packet += 1 + next(5);
+                // Mostly advancing time, with occasional equal or earlier
+                // times so some sequences contain a reset.
+                time = match next(12) {
+                    0 => time.saturating_sub(next(30)),
+                    1 => time,
+                    _ => time + 1 + next(20),
+                };
+            }
+            let map = EntryMap::new(0x1011, points.clone());
+            let last = packet + 3;
+            for _ in 0..60 {
+                let a = next(last + 1);
+                let b = next(last + 1);
+                let sequence = a.min(b)..a.max(b) + 1;
+                let horizon = time + 40;
+                let input = next(horizon);
+                let output = next(horizon);
+                assert_eq!(
+                    outcome(map.range(sequence.clone(), input, output)),
+                    outcome(linear_range(&points, sequence, input, output)),
+                );
+                checked += 1;
+            }
+        }
+        assert_eq!(checked, 12_000);
+    }
+
+    #[test]
+    fn resets_are_indexed_once_at_parse_time() {
+        let points = [(0, 10), (1, 20), (2, 20), (3, 30), (4, 5), (5, 6)]
+            .map(|(packet, time)| Point { packet, time });
+        let map = EntryMap::new(0x1011, points.to_vec());
+        assert_eq!(map.resets, [1, 3]);
+        // Slices that avoid both resets still resolve.
+        assert_eq!(outcome(map.range(0..2, 10, 20)), "0..1");
+        assert_eq!(outcome(map.range(2..4, 20, 30)), "2..3");
+        assert_eq!(outcome(map.range(4..6, 5, 6)), "4..5");
+        // A slice spanning either reset refuses.
+        assert!(map.range(0..3, 10, 20).is_err());
+        assert!(map.range(3..5, 20, 30).is_err());
     }
 }

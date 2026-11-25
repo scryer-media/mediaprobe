@@ -14,7 +14,7 @@ const MAX_IO_HEADERS: usize = 256;
 const EBML_ID_ATTACHMENTS: u32 = 0x1941_a469;
 const EBML_ID_TAGS: u32 = 0x1254_c367;
 
-pub(super) fn read<R: Read + Seek>(
+pub(super) fn read<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     tracks: &mut [RawTrack],
     track_uids: &[(u64, usize)],
@@ -60,7 +60,7 @@ fn bounded_end(header: EbmlElementHeader, end: u64) -> Result<u64, ProbeError> {
     clippy::too_many_arguments,
     reason = "supplemental inventory combines existing track identity and timing with shared element and byte budgets"
 )]
-fn inventory<R: Read + Seek>(
+fn inventory<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     tracks: &mut [RawTrack],
     track_uids: &[(u64, usize)],
@@ -534,7 +534,7 @@ fn chapters(
     Ok(())
 }
 
-fn attachments<R: Read + Seek>(
+fn attachments<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     end: u64,
     remaining: &mut usize,
@@ -589,7 +589,7 @@ fn attachments<R: Read + Seek>(
     Ok(())
 }
 
-fn last_cluster_duration<R: Read + Seek>(
+fn last_cluster_duration<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     end: u64,
     video: &RawTrack,

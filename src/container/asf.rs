@@ -109,10 +109,9 @@ pub(crate) fn parse_asf_source(
     }
     let header_len =
         usize::try_from(header_size).map_err(|_| parse_error("ASF header too large"))?;
-    let mut header = vec![0_u8; header_len];
-    header[..24].copy_from_slice(&prefix);
+    let mut header = prefix.to_vec();
     file.seek(SeekFrom::Start(24))?;
-    file.read_exact(&mut header[24..])
+    crate::source::read_exact_append(file, &mut header, header_len - 24)
         .map_err(|_| parse_error("truncated ASF header object data"))?;
 
     let mut root = SliceReader::new(&header[24..]);
@@ -559,8 +558,11 @@ fn parse_languages(data: &[u8], state: &mut AsfState) -> Result<(), ProbeError> 
     if count > MAX_LANGUAGES {
         return Err(parse_error("too many ASF language records"));
     }
-    let mut languages = Vec::with_capacity(count);
-    let mut original_languages = Vec::with_capacity(count);
+    // Each record takes at least its length byte, so the bytes present bound
+    // the records however many the count declares.
+    let capacity = count.min(r.remaining());
+    let mut languages = Vec::with_capacity(capacity);
+    let mut original_languages = Vec::with_capacity(capacity);
     for _ in 0..count {
         let byte_len = r.u8()? as usize;
         if !byte_len.is_multiple_of(2) {
@@ -680,9 +682,8 @@ fn probe_asf_frame_rates(
             break;
         }
         let read_len = available.min(u64::from(packet_size)) as usize;
-        let mut packet = vec![0_u8; read_len];
         file.seek(SeekFrom::Start(position)).ok()?;
-        file.read_exact(&mut packet).ok()?;
+        let packet = crate::source::read_exact_vec(file, read_len).ok()?;
         let Some(consumed) =
             collect_asf_packet_timestamps(&packet, packet_size, video_streams, &mut timestamps)
         else {

@@ -81,8 +81,7 @@ pub(crate) fn parse_flv_source(
             {
                 break;
             }
-            let mut payload = vec![0_u8; payload_len];
-            file.read_exact(&mut payload)?;
+            let payload = crate::source::read_exact_vec(file, payload_len)?;
             let previous_tag_size = read_u32_be(&mut file)?;
             if previous_tag_size != 11_u32.saturating_add(payload_len as u32) {
                 if resynchronize_tags(&mut file, tag_start.saturating_add(1), file_len, scan_end)? {
@@ -572,7 +571,7 @@ fn resynchronize_tags(
         return Ok(false);
     }
     file.seek(SeekFrom::Start(start))?;
-    let mut data = Vec::with_capacity(length as usize);
+    let mut data = Vec::with_capacity(crate::source::budgeted_capacity(file, length));
     file.take(length).read_to_end(&mut data)?;
     for offset in 0..data.len() {
         let Some(next) = tag_layout_end(&data, offset) else {

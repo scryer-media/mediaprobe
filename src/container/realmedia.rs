@@ -24,8 +24,8 @@ fn u32be(data: &[u8], at: usize) -> Option<u32> {
 
 pub(crate) fn parse(source: &mut dyn MediaSource) -> Result<RawContainer, ProbeError> {
     source.seek(SeekFrom::Start(0))?;
-    let mut data = vec![0; source.len().min(LIMIT) as usize];
-    source.read_exact(&mut data)?;
+    let prefix_len = source.len().min(LIMIT) as usize;
+    let data = crate::source::read_exact_vec(source, prefix_len)?;
     if !data.starts_with(b".RMF") {
         return Err(ProbeError::Malformed("invalid RealMedia signature".into()));
     }

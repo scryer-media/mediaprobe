@@ -187,6 +187,7 @@ fn enrich_movi<T: Read + Seek>(
     details: &mut crate::AnalysisDetails,
 ) -> Result<(), ProbeError> {
     let mut stack = Vec::new();
+    let track_for = tracks_by_stream_number(tracks);
     let mut counts = vec![0_u8; tracks.len()];
     let mut remaining = 1024 * 1024_usize;
     let mut buf = vec![0; 64 * 1024];
@@ -241,10 +242,7 @@ fn enrich_movi<T: Read + Seek>(
         let Some(number) = parse_idx1_stream_number(&header[..2]) else {
             continue;
         };
-        let Some(index) = tracks
-            .iter()
-            .position(|track| track.stream_number == number)
-        else {
+        let Some(index) = track_for.get(number).copied().flatten() else {
             continue;
         };
         let track = &mut tracks[index].raw;
@@ -651,6 +649,7 @@ fn apply_idx1_stream_sizes<T: Read + Seek>(
 
     let mut remaining = idx1.len() as usize;
     let mut buf = vec![0_u8; AVI_IDX1_READ_BATCH_BYTES];
+    let track_for = tracks_by_stream_number(tracks);
     while remaining >= 16 {
         let read_len = remaining.min(buf.len());
         let read_len = read_len - (read_len % 16);
@@ -673,18 +672,28 @@ fn apply_idx1_stream_sizes<T: Read + Seek>(
                 let Some(stream_number) = parse_idx1_stream_number(&entry[..2]) else {
                     continue;
                 };
-                let Some(track) = tracks
-                    .iter_mut()
-                    .find(|track| track.stream_number == stream_number)
-                else {
+                let Some(index) = track_for.get(stream_number).copied().flatten() else {
                     continue;
                 };
-                track.index_bytes += u64::from(read_u32_le(entry, 12));
+                tracks[index].index_bytes += u64::from(read_u32_le(entry, 12));
             }
         }
     }
 
     Ok(())
+}
+
+/// The first track carrying each two-character stream number, so chunk and
+/// index records find their track without searching every track. No stream
+/// number a chunk can spell exceeds 255.
+fn tracks_by_stream_number(tracks: &[AviTrack]) -> [Option<usize>; 256] {
+    let mut by_number = [None; 256];
+    for (index, track) in tracks.iter().enumerate().rev() {
+        if let Some(slot) = by_number.get_mut(track.stream_number) {
+            *slot = Some(index);
+        }
+    }
+    by_number
 }
 
 fn parse_idx1_stream_number(prefix: &[u8]) -> Option<usize> {
@@ -1104,6 +1113,85 @@ mod tests {
             duration_seconds: None,
             declared_payload_bytes: None,
             index_bytes: 0,
+        }
+    }
+
+    /// Index accounting as it was before tracks were looked up by number.
+    fn index_bytes_by_search(entries: &[u8], tracks: &mut [super::AviTrack]) {
+        for entry in entries.as_chunks::<16>().0 {
+            let Some(stream_number) = super::parse_idx1_stream_number(&entry[..2]) else {
+                continue;
+            };
+            let Some(track) = tracks
+                .iter_mut()
+                .find(|track| track.stream_number == stream_number)
+            else {
+                continue;
+            };
+            track.index_bytes += u64::from(super::read_u32_le(entry, 12));
+        }
+    }
+
+    #[test]
+    fn index_accounting_by_stream_number_matches_a_search_of_every_track() {
+        let mut state = 0x1234_5678_u32;
+        let mut next = |bound: u32| {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            state % bound
+        };
+        let prefixes: [&[u8; 2]; 10] = [
+            b"00",
+            b"07",
+            b"99",
+            b"a0",
+            b"ff",
+            b"FE",
+            b"+f",
+            b"zz",
+            b"1A",
+            b"\xff\xfe",
+        ];
+        for round in 0..40 {
+            // Stream numbers above 99 take the per-record path; duplicates
+            // and the saturated 255 check that the first track keeps winning.
+            let mut numbers: Vec<usize> = (0..1 + next(12)).map(|_| next(300) as usize).collect();
+            if round % 2 == 0 {
+                numbers.push(255);
+                numbers.push(255);
+            }
+            let tracks: Vec<_> = numbers.iter().map(|number| sample_track(*number)).collect();
+            let mut entries = Vec::new();
+            for _ in 0..(super::AVI_IDX1_READ_BATCH_BYTES / 16 + 1 + next(500) as usize) {
+                let prefix: [u8; 2] = if next(2) == 0 {
+                    *prefixes[next(prefixes.len() as u32) as usize]
+                } else {
+                    format!("{:02x}", next(256)).as_bytes().try_into().unwrap()
+                };
+                entries.extend_from_slice(&prefix);
+                entries.extend_from_slice(b"wb");
+                entries.extend_from_slice(&[0; 8]);
+                entries.extend_from_slice(&next(1 << 20).to_le_bytes());
+            }
+            let mut expected = tracks.clone();
+            index_bytes_by_search(&entries, &mut expected);
+            let bytes = sample_chunk(b"idx1", &entries);
+            let mut source = std::io::Cursor::new(&bytes);
+            let idx1 = riff::Chunk::read(&mut source, 0).unwrap();
+            let mut actual = tracks;
+            super::apply_idx1_stream_sizes(&idx1, &mut source, &mut actual).unwrap();
+            assert_eq!(
+                actual
+                    .iter()
+                    .map(|track| track.index_bytes)
+                    .collect::<Vec<_>>(),
+                expected
+                    .iter()
+                    .map(|track| track.index_bytes)
+                    .collect::<Vec<_>>(),
+                "round {round}"
+            );
         }
     }
 

@@ -2,7 +2,7 @@
 
 use crate::warning;
 use crate::{ChromaLocation, ChromaSubsampling, Codec};
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{BufReader, Read, SeekFrom};
 #[cfg(test)]
 use std::path::Path;
 
@@ -110,6 +110,7 @@ pub(crate) fn parse_mkv_source(
     });
     let file_size_hint = header.file_size_hint.unwrap_or(scanner.file_len);
     let timestamp_scale_ns = header.timestamp_scale_ns;
+    let tracks_truncated = header.tracks_truncated;
     let mut tracks = Vec::with_capacity(header.tracks.len());
     let mut primary_video_track_num = None;
     let mut primary_video_index = None;
@@ -327,6 +328,18 @@ pub(crate) fn parse_mkv_source(
     }
     details.report.budget_exhausted |= sample_report.budget_exhausted;
     details.report.warnings.extend(sample_report.warnings);
+    if tracks_truncated {
+        details.report.status = crate::ProbeStatus::Incomplete;
+        details.report.budget_exhausted = true;
+        details.report.warnings.push(crate::ProbeWarning {
+            code: warning::MKV_INVENTORY_INCOMPLETE.into(),
+            message: format!(
+                "Matroska track inventory stops after {} tracks; the tracks past it are not reported",
+                super::MAX_TRACKS
+            ),
+            ..Default::default()
+        });
+    }
     if frame_rate_probe.is_some()
         || (!profile.skips_deep_probes() && primary_video_signals.nondefault_timestamp_scale)
     {
@@ -367,6 +380,7 @@ struct ParsedMkvHeader {
     chapters_known_absent: bool,
     file_size_hint: Option<u64>,
     tracks: Vec<ParsedMkvTrack>,
+    tracks_truncated: bool,
 }
 
 #[derive(Debug)]
@@ -400,7 +414,7 @@ impl Default for ParsedMkvInfo {
     }
 }
 
-fn parse_mkv_header<R: Read + Seek>(
+fn parse_mkv_header<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
 ) -> Result<ParsedMkvHeader, ProbeError> {
     let format_name = parse_mkv_doc_type(scanner)?;
@@ -483,7 +497,8 @@ fn parse_mkv_header<R: Read + Seek>(
     }
 
     let info = info.unwrap_or_default();
-    let tracks = tracks.ok_or_else(|| ProbeError::Malformed("matroska tracks missing".into()))?;
+    let (tracks, tracks_truncated) =
+        tracks.ok_or_else(|| ProbeError::Malformed("matroska tracks missing".into()))?;
 
     Ok(ParsedMkvHeader {
         format_name,
@@ -493,10 +508,11 @@ fn parse_mkv_header<R: Read + Seek>(
         chapters_known_absent: offsets.seen && offsets.chapters.is_none() && num_chapters.is_none(),
         file_size_hint,
         tracks,
+        tracks_truncated,
     })
 }
 
-fn parse_mkv_doc_type<R: Read + Seek>(
+fn parse_mkv_doc_type<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
 ) -> Result<String, ProbeError> {
     let header = match scanner.read_element_header() {
@@ -596,7 +612,10 @@ fn parse_mkv_info_payload(payload: &[u8]) -> ParsedMkvInfo {
     info
 }
 
-fn parse_mkv_tracks_payload(payload: &[u8]) -> Vec<ParsedMkvTrack> {
+/// Parses the track entries of a `Tracks` element, keeping at most
+/// [`super::MAX_TRACKS`]. The flag reports that entries past the limit were
+/// left out.
+fn parse_mkv_tracks_payload(payload: &[u8]) -> (Vec<ParsedMkvTrack>, bool) {
     let mut tracks = Vec::new();
     let mut current = payload;
     while !current.is_empty() {
@@ -606,11 +625,14 @@ fn parse_mkv_tracks_payload(payload: &[u8]) -> Vec<ParsedMkvTrack> {
         if id == EBML_ID_TRACK_ENTRY
             && let Some(track) = parse_mkv_track_entry(child_payload)
         {
+            if tracks.len() == super::MAX_TRACKS {
+                return (tracks, true);
+            }
             tracks.push(track);
         }
         current = &current[consumed..];
     }
-    tracks
+    (tracks, false)
 }
 
 fn parse_mkv_track_entry(payload: &[u8]) -> Option<ParsedMkvTrack> {
@@ -1102,18 +1124,30 @@ fn audio_channels_from_probe_bytes(codec_name: &Codec, data: &[u8]) -> Option<i3
     channels
 }
 
-fn apply_unique_audio_prefix_channel_fallback<R: Read + Seek>(
+fn apply_unique_audio_prefix_channel_fallback<R: crate::source::MediaSource>(
     scanner: &mut MkvRawScanner<R>,
     tracks: &mut [RawTrack],
 ) {
-    for track_idx in 0..tracks.len() {
-        let Some(codec_name) = tracks[track_idx].codec_name.as_ref() else {
+    // Each codec's audio tracks are counted once, so the pass stays linear
+    // in the number of tracks however many share a codec.
+    let mut counts = [0_usize; 3];
+    for track in tracks.iter() {
+        if track.kind == TrackKind::Audio
+            && let Some(slot) = track
+                .codec_name
+                .as_ref()
+                .and_then(prefix_channel_codec_slot)
+        {
+            counts[slot] += 1;
+        }
+    }
+    for track in tracks.iter_mut() {
+        let Some(codec_name) = track.codec_name.as_ref() else {
             continue;
         };
-        if tracks[track_idx].kind != TrackKind::Audio
-            || !matches!(codec_name, Codec::Ac3 | Codec::Eac3 | Codec::Dts)
-            || tracks[track_idx].channels.is_some()
-            || audio_codec_track_count(tracks, codec_name) != 1
+        if track.kind != TrackKind::Audio
+            || track.channels.is_some()
+            || prefix_channel_codec_slot(codec_name).is_none_or(|slot| counts[slot] != 1)
         {
             continue;
         }
@@ -1121,19 +1155,20 @@ fn apply_unique_audio_prefix_channel_fallback<R: Read + Seek>(
         if let Ok(Some(channels)) =
             scanner.scan_prefix_for_audio_channels(codec_name, MKV_CHAPTER_SCAN_MAX_BYTES as u64)
         {
-            tracks[track_idx].channels =
-                merge_scanned_audio_channels(tracks[track_idx].channels, Some(channels));
+            track.channels = merge_scanned_audio_channels(track.channels, Some(channels));
         }
     }
 }
 
-fn audio_codec_track_count(tracks: &[RawTrack], codec_name: &Codec) -> usize {
-    tracks
-        .iter()
-        .filter(|track| {
-            track.kind == TrackKind::Audio && track.codec_name.as_ref() == Some(codec_name)
-        })
-        .count()
+/// The codecs whose channels a lone track may take from the file's first
+/// frames, each with its own counter.
+fn prefix_channel_codec_slot(codec_name: &Codec) -> Option<usize> {
+    match codec_name {
+        Codec::Ac3 => Some(0),
+        Codec::Eac3 => Some(1),
+        Codec::Dts => Some(2),
+        _ => None,
+    }
 }
 
 #[cfg(test)]

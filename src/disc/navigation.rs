@@ -80,7 +80,9 @@ pub(super) fn playlist(data: &[u8], id: String) -> Result<DiscTitle> {
         );
     }
     let mut at = 6;
-    let mut starts = Vec::with_capacity(count);
+    // Every play item takes at least 34 bytes, so a short list cannot reserve
+    // room for items it does not hold.
+    let mut starts = Vec::with_capacity(count.min(list.len().saturating_sub(at) / 34));
     let mut duration = 0.0;
     for _ in 0..count {
         let length = usize::from(u16be(list, at)?);

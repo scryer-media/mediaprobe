@@ -208,8 +208,13 @@ pub(super) fn parse(data: &[u8]) -> Result<ClipInfo> {
 }
 
 impl ClipInfo {
+    #[cfg(test)]
     pub(super) fn streams_for(&self, segment: &DiscSegment) -> Result<Vec<StreamDetail>> {
-        let range = self.packet_range(segment)?;
+        self.streams_in(&self.packet_range(segment)?)
+    }
+
+    /// The declared streams for a packet range [`Self::packet_range`] resolved.
+    pub(super) fn streams_in(&self, range: &std::ops::Range<u32>) -> Result<Vec<StreamDetail>> {
         let first_index = self
             .programs
             .iter()
